@@ -12,6 +12,8 @@ import pl.edu.agh.to2.example.models.weather.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 import pl.edu.agh.to2.example.services.WeatherService;
 
+import java.io.IOException;
+
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -26,7 +28,7 @@ public class WeatherController {
     }
 
     @GetMapping("")
-    public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) {
+    public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) throws IOException {
         WeatherRequest weatherRequest = new WeatherRequest(weatherRequestDto.lat(), weatherRequestDto.lng());
         WeatherResponse weatherResponse = service.findWeather(weatherRequest);
         if (weatherResponse == null) {
