@@ -1,12 +1,15 @@
-import ButtonComponent from "./components/ButtonComponent";
-import InputComponent from "./components/InputComponent";
-import FormComponent from "./components/FormComponent";
+import Form from "./components/Form";
+import Navbar from "./components/Navbar";
+import "./styles/App.css"
 
 function App() {
   return (
-    <div>
-      <FormComponent/>
-    </div>
+    <>
+      <Navbar />
+      <div className="main-container">
+        <Form/>
+      </div>
+    </>
   );
 }
 
