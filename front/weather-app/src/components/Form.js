@@ -1,5 +1,7 @@
 import "../styles/Form.css"
 import { useState } from "react"
+import WeatherService from "../services/WeatherService";
+import { useNavigate } from "react-router-dom";
 
 export default function Form() {
     const [showErrorLattitude, setShowErrorLattitude] = useState(false);
@@ -11,6 +13,8 @@ export default function Form() {
     const [longitude, setLongitude] = useState("");
 
     const [timeoutId, setTimeoutId] = useState(undefined);
+
+    const navigate = useNavigate();
 
     const lattitudeValidation = (event) => {
         let val = event.target.value;
@@ -43,8 +47,8 @@ export default function Form() {
             setShowSubmitError(true);
             setTimeoutId(setTimeout(() => {setShowSubmitError(false)}, 3000))
         } else {
-            // Get data to service
-            // and route to weather view
+            WeatherService.getWeatherByCoordinates(lattitude, longitude);
+            navigate("/weather");
         }
     }
 
