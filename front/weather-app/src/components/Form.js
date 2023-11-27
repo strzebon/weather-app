@@ -19,9 +19,13 @@ export default function Form() {
     const lattitudeValidation = (event) => {
         let val = event.target.value;
         setLattitude(val);
-        if (/^\d+\.\d+$/.test(val)) {
+        console.log(val);
+        if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
             setShowErrorLattitude(true);
-        } else if (val < 90 && val > -90) {
+            return;
+        }
+        let floatVal = parseFloat(val); 
+        if (floatVal < 90 && floatVal > -90) {
             setShowErrorLattitude(false);
         } else {
             setShowErrorLattitude(true);
@@ -31,23 +35,30 @@ export default function Form() {
     const longitudeValidation = (event) => {
         let val = event.target.value;
         setLongitude(val);
-        if (/^\d+\.\d+$/.test(val)) {
+        if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
             setShowErrorLongitude(true);
-        } else if (val < 180 && val > -180) {
+            return;
+        }
+        let floatVal = parseFloat(val); 
+        if (floatVal < 180 && floatVal > -180) {
             setShowErrorLongitude(false);
         } else {
             setShowErrorLongitude(true);
         }
     }
 
-    const formWeatherRequest = (event) => {
+    const formWeatherRequest = async (event) => {
         event.preventDefault();
         if (showErrorLattitude || showErrorLongitude || !longitude || !lattitude) {
             clearTimeout(timeoutId);
             setShowSubmitError(true);
             setTimeoutId(setTimeout(() => {setShowSubmitError(false)}, 3000))
         } else {
-            WeatherService.getWeatherByCoordinates(lattitude, longitude);
+            try {
+                await WeatherService.getWeatherByCoordinates(lattitude, longitude);
+            } catch (error) {
+                console.error(error.message);
+            }
             navigate("/weather");
         }
     }

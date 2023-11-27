@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import WeatherService from "../services/WeatherService"
+import WeatherOverview from "./WeatherOverview";
+import "../styles/WeatherView.css"
 
 export default function WeatherView() {
     
@@ -22,8 +24,8 @@ export default function WeatherView() {
     }
     
     return (
-        <>
-            {weatherInfo.temp_c}
-        </>
+        <div className="weather-container">
+            <WeatherOverview {...weatherInfo}/>
+        </div>
     )
 }
