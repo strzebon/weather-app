@@ -9,15 +9,25 @@
 
 ### Linux i MacOS
 Sklonować repozytorium
+```
 $ git clone 'nazwa repozytorium.git'
+```
 Wejść do katalogu
+```
 $ cd kp-wt-1640-pogodynki/
+```
 Uruchomić skrypt start.sh
+```
 $ ./start.sh
+```
 Jeżeli nie są nadane odpowiednie uprawnienia należy wcześniej wykonać
+```
 $ chmod 744 start.sh
+```
 A następnie dopiero
+```
 $ ./start.sh
+```
 ## Frontend
 
 ## Backend
