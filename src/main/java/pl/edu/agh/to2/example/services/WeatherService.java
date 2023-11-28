@@ -14,6 +14,8 @@ import java.util.Objects;
 @Service
 public class WeatherService {
 
+    private WeatherResponse lastResponse;
+
     private final OkHttpClient client = new OkHttpClient();
     public WeatherResponse findWeather(WeatherRequest weatherRequest) throws IOException {
         String url = "http://api.weatherapi.com/v1/current.json";
@@ -33,12 +35,24 @@ public class WeatherService {
                 String[] img_path = json.getAsJsonObject("current").getAsJsonObject("condition").get("icon").getAsString().split("/");
                 String condition = json.getAsJsonObject("current").getAsJsonObject("condition").get("text").getAsString();
                 double precip_mm = Double.parseDouble(json.getAsJsonObject("current").get("precip_mm").getAsString());
-                return new WeatherResponse(location, temp_c, img_path[img_path.length - 2] + "/" + img_path[img_path.length - 1], condition, precip_mm);
+                lastResponse = new WeatherResponse(location, temp_c, img_path[img_path.length - 2] + "/" + img_path[img_path.length - 1], condition, precip_mm);
+                return lastResponse;
             }
         }
         catch (IOException e) {
             throw new IOException();
         }
         return null;
+    }
+
+    public WeatherResponse getLastResponse() {
+        return lastResponse;
+    }
+
+    public boolean isLastResponse() {
+        if (lastResponse == null) {
+            return false;
+        }
+        return true;
     }
 }
