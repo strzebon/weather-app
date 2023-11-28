@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.dto.WeatherRequestDto;
+import pl.edu.agh.to2.example.models.weather.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 import pl.edu.agh.to2.example.services.WeatherService;
 
@@ -56,4 +57,15 @@ public class WeatherControllerTest {
         mvc.perform(MockMvcRequestBuilders.post("/weather").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
+
+    @Test
+    public void shouldReturnNotFoundLastResponse() throws Exception {
+        //given
+        String requestJson = new ObjectMapper().writeValueAsString(null);
+        when(weatherService.getLastResponse()).thenReturn(new WeatherResponse("any", 1, "any", "any", 1));
+
+        mvc.perform(MockMvcRequestBuilders.get("/weather/current").contentType(APPLICATION_JSON).content(requestJson))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
 }
