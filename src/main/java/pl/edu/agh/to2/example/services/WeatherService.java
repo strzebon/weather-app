@@ -4,6 +4,7 @@ package pl.edu.agh.to2.example.services;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.*;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.to2.example.models.weather.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.WeatherResponse;
@@ -28,7 +29,7 @@ public class WeatherService {
                 .url(builder.build())
                 .build();
         try(Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
+            if (response.code() == 200) {
                 JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
                 String location = json.getAsJsonObject("location").get("name").getAsString();
                 double temp_c = Double.parseDouble(json.getAsJsonObject("current").get("temp_c").getAsString());
