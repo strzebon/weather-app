@@ -56,10 +56,10 @@ export default function Form() {
         } else {
             try {
                 await WeatherService.getWeatherByCoordinates(lattitude, longitude);
+                navigate("/weather");
             } catch (error) {
                 console.error(error.message);
             }
-            navigate("/weather");
         }
     }
 
