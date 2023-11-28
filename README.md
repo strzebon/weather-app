@@ -16,17 +16,21 @@ Zawraca ReponseEntity z WeatherResponse i statusem HTTP.
 ### Modele
 #### WeatherRequestDto
 ![img_2.png](img_2.png)
-Klasa zawierająca dwa inty, będące koordynatami interesującej nas lokalizacji. Jest to data transfer
-object, co oznacza, że w razie gdy api z fornt endu się zmieni, nie będziemy musieli ruszać logiki
+Klasa zawierająca dwie liczby zmiennoprzecinkowe, będące koordynatami interesującej nas lokalizacji. Jest to data transfer
+object, co oznacza, że w razie gdy api z front endu się zmieni, nie będziemy musieli ruszać logiki
 w naszych serwisach, wystarczy przemapować tą klasę odpowiednio na WeatherRequest. Jest to tylko
 klasa przejściowa.
 
 #### WeatherRequest
 ![img_3.png](img_3.png)
-Klasa zawierająca dwa inty, będące koordynatami interesującej nas lokalizacji. Operujemy na niej
-w porcesie zdobywania informacji o pogodzie
+Klasa zawierająca dwie liczby zmiennoprzecinkowe, będące koordynatami interesującej nas lokalizacji. Operujemy na niej
+w procesie zdobywania informacji o pogodzie
 
 #### WeatherResponse
+![img_4.png](img_4.png)
+Klasa zawierająca dane dotyczące lokalizacji oraz pogody. Służy do zwrócenia uzyskanych z API informacji.
 
 ### Serwisy
 ### WeatherService
+![img_5.png](img_5.png)
+Klasa serwis, jej zadaniem jest połączenie się z API, wysłanie zapytania oraz przetworzenie informacji zwrotnej.
