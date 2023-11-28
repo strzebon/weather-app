@@ -304,7 +304,7 @@ public class WeatherService {
                 .url(builder.build())
                 .build();
         try(Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
+            if (response.code() == 200) {
                 JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
                 String location = json.getAsJsonObject("location").get("name").getAsString();
                 double temp_c = Double.parseDouble(json.getAsJsonObject("current").get("temp_c").getAsString());
