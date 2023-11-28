@@ -1,5 +1,23 @@
 # Aplikacja do sprawdzania pogody
 
+## Uruchomienie
+### Wymagania do uruchomienia
+* Node.JS >= 14.0
+* Java 17
+* Git
+* Git Bash lub inne podobne narzędzie (Windows)
+
+### Linux i MacOS
+Sklonować repozytorium
+$ git clone 'nazwa repozytorium.git'
+Wejść do katalogu
+$ cd kp-wt-1640-pogodynki/
+Uruchomić skrypt start.sh
+$ ./start.sh
+Jeżeli nie są nadane odpowiednie uprawnienia należy wcześniej wykonać
+$ chmod 744 start.sh
+A następnie dopiero
+$ ./start.sh
 ## Frontend
 
 ## Backend
@@ -31,6 +49,6 @@ w procesie zdobywania informacji o pogodzie
 Klasa zawierająca dane dotyczące lokalizacji oraz pogody. Służy do zwrócenia uzyskanych z API informacji.
 
 ### Serwisy
-### WeatherService
+#### WeatherService
 ![img_5.png](img_5.png)
 Klasa serwis, jej zadaniem jest połączenie się z API, wysłanie zapytania oraz przetworzenie informacji zwrotnej.
