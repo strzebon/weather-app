@@ -19,8 +19,12 @@ public class WeatherService {
     private static final String url = "http://api.weatherapi.com/v1/current.json";
     private static final String apiKey = "53416f14f51041f593a122744232711";
     private WeatherResponse lastResponse;
+    private final OkHttpClient client;
 
-    private final OkHttpClient client = new OkHttpClient();
+    public WeatherService(OkHttpClient client) {
+        this.client = client;
+    }
+
     public WeatherResponse findWeather(WeatherRequest weatherRequest) throws IOException {
         String params = weatherRequest.lat() + "," + weatherRequest.lng();
         HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(url)).newBuilder()
