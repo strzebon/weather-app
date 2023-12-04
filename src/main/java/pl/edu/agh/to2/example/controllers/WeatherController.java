@@ -11,12 +11,13 @@ import pl.edu.agh.to2.example.services.WeatherService;
 
 import java.io.IOException;
 
+import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @CrossOrigin()
-@RequestMapping("weather")
+@RequestMapping("/weather")
 public class WeatherController {
     WeatherService service;
 
@@ -26,11 +27,16 @@ public class WeatherController {
     }
 
     @PostMapping("")
-    public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) throws IOException {
+    public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) {
         WeatherRequest weatherRequest = new WeatherRequest(weatherRequestDto.lat(), weatherRequestDto.lng());
-        WeatherResponse weatherResponse = service.findWeather(weatherRequest);
+        WeatherResponse weatherResponse = null;
+        try {
+            weatherResponse = service.findWeather(weatherRequest);
+        } catch (IOException ignored) {
+            return new ResponseEntity<>(BAD_GATEWAY);
+        }
         if (weatherResponse == null) {
-            return new ResponseEntity<>(null, NOT_FOUND);
+            return new ResponseEntity<>(NOT_FOUND);
         }
         return new ResponseEntity<>(weatherResponse, OK);
     }
@@ -38,7 +44,7 @@ public class WeatherController {
     @GetMapping("/current")
     public ResponseEntity<WeatherResponse> getLastWeatherResponse() {
         if (!service.isLastResponse()) {
-            return new ResponseEntity<>(null, NOT_FOUND);
+            return new ResponseEntity<>(NOT_FOUND);
         }
         return new ResponseEntity<>(service.getLastResponse(), OK);
     }
