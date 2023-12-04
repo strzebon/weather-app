@@ -1,10 +1,11 @@
 package pl.edu.agh.to2.example.services;
 
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import okhttp3.*;
-import org.springframework.context.annotation.Bean;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.to2.example.models.weather.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.WeatherResponse;
@@ -15,13 +16,13 @@ import java.util.Objects;
 @Service
 public class WeatherService {
 
+    private static final String url = "http://api.weatherapi.com/v1/current.json";
+    private static final String apiKey = "53416f14f51041f593a122744232711";
     private WeatherResponse lastResponse;
 
     private final OkHttpClient client = new OkHttpClient();
     public WeatherResponse findWeather(WeatherRequest weatherRequest) throws IOException {
-        String url = "http://api.weatherapi.com/v1/current.json";
         String params = weatherRequest.lat() + "," + weatherRequest.lng();
-        String apiKey = "53416f14f51041f593a122744232711";
         HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(url)).newBuilder()
                 .addQueryParameter("key", apiKey)
                 .addQueryParameter("q", params);
@@ -51,9 +52,6 @@ public class WeatherService {
     }
 
     public boolean isLastResponse() {
-        if (lastResponse == null) {
-            return false;
-        }
-        return true;
+        return lastResponse != null;
     }
 }
