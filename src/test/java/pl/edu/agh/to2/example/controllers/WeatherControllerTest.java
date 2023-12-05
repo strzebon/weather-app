@@ -17,6 +17,7 @@ import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 import pl.edu.agh.to2.example.services.WeatherService;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,7 +39,7 @@ class WeatherControllerTest {
         //given
         WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
-        when(weatherService.findWeather(any())).thenReturn(null);
+        when(weatherService.findWeather(any())).thenReturn(Optional.empty());
 
         mvc.perform(MockMvcRequestBuilders.post("/weather").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -60,7 +61,7 @@ class WeatherControllerTest {
         //given
         WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
-        when(weatherService.findWeather(any())).thenReturn(new WeatherResponse("any", 1, "any", "any", 1));
+        when(weatherService.findWeather(any())).thenReturn(Optional.of(new WeatherResponse("any", 1, "any", "any", 1)));
 
         mvc.perform(MockMvcRequestBuilders.post("/weather").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isOk());

@@ -10,6 +10,7 @@ import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 import pl.edu.agh.to2.example.services.WeatherService;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -29,16 +30,16 @@ public class WeatherController {
     @PostMapping("")
     public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) {
         WeatherRequest weatherRequest = new WeatherRequest(weatherRequestDto.lat(), weatherRequestDto.lng());
-        WeatherResponse weatherResponse = null;
+        Optional<WeatherResponse> weatherResponse;
         try {
             weatherResponse = service.findWeather(weatherRequest);
         } catch (IOException ignored) {
             return new ResponseEntity<>(BAD_GATEWAY);
         }
-        if (weatherResponse == null) {
-            return new ResponseEntity<>(NOT_FOUND);
-        }
-        return new ResponseEntity<>(weatherResponse, OK);
+
+        return weatherResponse
+                .map(wr -> new ResponseEntity<>(wr, OK))
+                .orElse(new ResponseEntity<>(NOT_FOUND));
     }
 
     @GetMapping("/current")

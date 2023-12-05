@@ -12,6 +12,7 @@ import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class WeatherService {
@@ -25,7 +26,7 @@ public class WeatherService {
         this.client = client;
     }
 
-    public WeatherResponse findWeather(WeatherRequest weatherRequest) throws IOException {
+    public Optional<WeatherResponse> findWeather(WeatherRequest weatherRequest) throws IOException {
         String params = weatherRequest.lat() + "," + weatherRequest.lng();
         HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(url)).newBuilder()
                 .addQueryParameter("key", apiKey)
@@ -42,13 +43,13 @@ public class WeatherService {
                 String condition = json.getAsJsonObject("current").getAsJsonObject("condition").get("text").getAsString();
                 double precip_mm = Double.parseDouble(json.getAsJsonObject("current").get("precip_mm").getAsString());
                 lastResponse = new WeatherResponse(location, temp_c, img_path[img_path.length - 2] + "/" + img_path[img_path.length - 1], condition, precip_mm);
-                return lastResponse;
+                return Optional.of(lastResponse);
             }
         }
         catch (IOException e) {
             throw new IOException();
         }
-        return null;
+        return Optional.empty();
     }
 
     public WeatherResponse getLastResponse() {

@@ -8,7 +8,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.weather.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.WeatherResponse;
+
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @RunWith(SpringRunner.class)
@@ -22,8 +26,8 @@ class WeatherServiceTest {
     @Test
     public void shouldReturnNullWhenWrongCoordinates() throws Exception {
         //when
-        WeatherResponse response = service.findWeather(new WeatherRequest(1000,1000));
+        Optional<WeatherResponse> response = service.findWeather(new WeatherRequest(1000,1000));
         //then
-        assertNull(response);
+        assertTrue(response.isEmpty());
     }
 }
