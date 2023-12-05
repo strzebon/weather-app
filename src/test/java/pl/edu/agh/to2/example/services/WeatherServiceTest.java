@@ -24,10 +24,18 @@ class WeatherServiceTest {
     private WeatherService service;
 
     @Test
-    public void shouldReturnNullWhenWrongCoordinates() throws Exception {
+    public void shouldReturnEmptyWhenWrongCoordinates() throws Exception {
         //when
         Optional<WeatherResponse> response = service.findWeather(new WeatherRequest(1000,1000));
         //then
         assertTrue(response.isEmpty());
+    }
+
+    @Test
+    public void shouldReturnNonemptyWhenRightCoordinates() throws Exception {
+        //when
+        Optional<WeatherResponse> response = service.findWeather(new WeatherRequest(1,1));
+        //then
+        assertTrue(response.isPresent());
     }
 }
