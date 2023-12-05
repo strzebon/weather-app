@@ -15,6 +15,7 @@ import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.dto.WeatherRequestDto;
 import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 import pl.edu.agh.to2.example.services.WeatherService;
+import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -35,7 +36,7 @@ class WeatherControllerTest {
     private WeatherService weatherService;
 
     @Test
-    public void shouldReturnNotFoundWhenServiceStatusNotFound() throws Exception {
+    void shouldReturnNotFoundWhenServiceStatusNotFound() throws Exception {
         //given
         WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
@@ -46,7 +47,7 @@ class WeatherControllerTest {
     }
 
     @Test
-    public void shouldReturnBadGatewayWhenServiceThrowsIOException() throws Exception {
+    void shouldReturnBadGatewayWhenServiceThrowsIOException() throws Exception {
         //given
         WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
@@ -57,7 +58,7 @@ class WeatherControllerTest {
     }
 
     @Test
-    public void shouldReturnOkWhenServiceStatusOk() throws Exception {
+    void shouldReturnOkWhenServiceStatusOk() throws Exception {
         //given
         WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
@@ -68,22 +69,20 @@ class WeatherControllerTest {
     }
 
     @Test
-    public void shouldReturnNotFoundLastResponse() throws Exception {
+    void shouldReturnNotFoundLastResponse() throws Exception {
         //given
         String requestJson = new ObjectMapper().writeValueAsString(null);
-        when(weatherService.getLastResponse()).thenReturn(new WeatherResponse("any", 1, "any", "any", 1));
 
         mvc.perform(MockMvcRequestBuilders.get("/weather/current").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @Test
-    public void shouldReturnLastResponseWhenItExists() throws Exception {
+    void shouldReturnLastResponseWhenItExists() throws Exception {
         //given
         WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
-        when(weatherService.getLastResponse()).thenReturn(new WeatherResponse("any", 1, "any", "any", 1));
-        when(weatherService.isLastResponse()).thenReturn(true);
+        ResponseHolder.updateLastResponse(new WeatherResponse("any", 1, "any", "any", 1));
 
         mvc.perform(MockMvcRequestBuilders.get("/weather/current").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isOk());
