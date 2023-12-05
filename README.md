@@ -214,9 +214,9 @@ Serwis służący do komunikacji z backendem. funkcja *getWeatherByCoordinates* 
 ```
 @RestController
 @CrossOrigin()
-@RequestMapping("weather")
+@RequestMapping("/weather")
 public class WeatherController {
-    WeatherService service;
+    private final WeatherService service;
 
     @Autowired
     public WeatherController(WeatherService service) {
@@ -229,13 +229,18 @@ Klasa kontroler, zawierająca endpointy do komunikacji z frontendem
 #### findWeather
 ```
 @PostMapping("")
-public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) throws IOException {
+public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) {
     WeatherRequest weatherRequest = new WeatherRequest(weatherRequestDto.lat(), weatherRequestDto.lng());
-    WeatherResponse weatherResponse = service.findWeather(weatherRequest);
-    if (weatherResponse == null) {
-        return new ResponseEntity<>(null, NOT_FOUND);
+    Optional<WeatherResponse> weatherResponse;
+    try {
+        weatherResponse = service.findWeather(weatherRequest);
+    } catch (IOException ignored) {
+        return new ResponseEntity<>(BAD_GATEWAY);
     }
-    return new ResponseEntity<>(weatherResponse, OK);
+
+    return weatherResponse
+            .map(wr -> new ResponseEntity<>(wr, OK))
+            .orElse(new ResponseEntity<>(NOT_FOUND));
 }
 ```
 Endpoint udostępnoiny na porcie localhost:8080/weather, metoda post. Przyjmuje obiekt klasy WeatherRequestDto,
@@ -245,10 +250,10 @@ Zawraca ReponseEntity z WeatherResponse i statusem HTTP.
 ```
 @GetMapping("/current")
 public ResponseEntity<WeatherResponse> getLastWeatherResponse() {
-    if (!service.isLastResponse()) {
-        return new ResponseEntity<>(null, NOT_FOUND);
+    if (!ResponseHolder.isLastResponse()) {
+        return new ResponseEntity<>(NOT_FOUND);
     }
-    return new ResponseEntity<>(service.getLastResponse(), OK);
+    return new ResponseEntity<>(ResponseHolder.getLastResponse(), OK);
 }
 ```
 Drugi endpoint służy do pobrania ostatniego zapytania, tak aby po odświeżeniu przeglądarki nasze dane nie znikły oraz nie było potrzebne wykonanie ponownego takiego samego zapytania
@@ -289,48 +294,82 @@ Klasa zawierająca dane dotyczące lokalizacji oraz pogody. Służy do zwróceni
 ```
 @Service
 public class WeatherService {
+    private static final String URL = "http://api.weatherapi.com/v1/current.json";
+    private static final String API_KEY = "53416f14f51041f593a122744232711";
+    private static final String LOCATION = "location";
+    private static final String CURRENT = "current";
+    private static final String CONDITION = "condition";
+    private final OkHttpClient client;
 
-    private WeatherResponse lastResponse;
+    @Autowired
+    public WeatherService(OkHttpClient client) {
+        this.client = client;
+    }
 
-    private final OkHttpClient client = new OkHttpClient();
-    public WeatherResponse findWeather(WeatherRequest weatherRequest) throws IOException {
-        String url = "http://api.weatherapi.com/v1/current.json";
+    public Optional<WeatherResponse> findWeather(WeatherRequest weatherRequest) throws IOException {
         String params = weatherRequest.lat() + "," + weatherRequest.lng();
-        String apiKey = "53416f14f51041f593a122744232711";
-        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(url)).newBuilder()
-                .addQueryParameter("key", apiKey)
+        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL)).newBuilder()
+                .addQueryParameter("key", API_KEY)
                 .addQueryParameter("q", params);
         Request request = new Request.Builder()
                 .url(builder.build())
                 .build();
-        try(Response response = client.newCall(request).execute()) {
+        try (Response response = client.newCall(request).execute()) {
             if (response.code() == 200) {
                 JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
-                String location = json.getAsJsonObject("location").get("name").getAsString();
-                double temp_c = Double.parseDouble(json.getAsJsonObject("current").get("temp_c").getAsString());
-                String[] img_path = json.getAsJsonObject("current").getAsJsonObject("condition").get("icon").getAsString().split("/");
-                String condition = json.getAsJsonObject("current").getAsJsonObject("condition").get("text").getAsString();
-                double precip_mm = Double.parseDouble(json.getAsJsonObject("current").get("precip_mm").getAsString());
-                lastResponse = new WeatherResponse(location, temp_c, img_path[img_path.length - 2] + "/" + img_path[img_path.length - 1], condition, precip_mm);
-                return lastResponse;
+                String location = json.getAsJsonObject(LOCATION).get("name").getAsString();
+                double temp_c = Double.parseDouble(json.getAsJsonObject(CURRENT).get("temp_c").getAsString());
+                String[] img_path = json.getAsJsonObject(CURRENT).getAsJsonObject(CONDITION).get("icon").getAsString().split("/");
+                String condition = json.getAsJsonObject(CURRENT).getAsJsonObject(CONDITION).get("text").getAsString();
+                double precip_mm = Double.parseDouble(json.getAsJsonObject(CURRENT).get("precip_mm").getAsString());
+                WeatherResponse lastResponse = new WeatherResponse(location, temp_c, img_path[img_path.length - 2]
+                        + "/" + img_path[img_path.length - 1], condition, precip_mm);
+                ResponseHolder.updateLastResponse(lastResponse);
+                return Optional.of(lastResponse);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new IOException();
+        } catch (NullPointerException e) {
+            return Optional.empty();
         }
-        return null;
-    }
-
-    public WeatherResponse getLastResponse() {
-        return lastResponse;
-    }
-
-    public boolean isLastResponse() {
-        if (lastResponse == null) {
-            return false;
-        }
-        return true;
+        return Optional.empty();
     }
 }
 ```
 Klasa serwis, jej zadaniem jest połączenie się z API, wysłanie zapytania oraz przetworzenie informacji zwrotnej.
+
+### Konfiguratory
+#### WeatherConfigurator
+```
+@Configuration
+public class WeatherConfigurator {
+
+    @Bean
+    OkHttpClient client() {
+        return new OkHttpClient();
+    }
+}
+```
+Klasa odpowiedzialna za skonstruowanie obiektu OkHttpClient, wstrzykiwanego do serwisu.
+
+### Klasy pomocnicze
+#### ResponseHolder
+```
+public class ResponseHolder {
+    private static WeatherResponse lastResponse = null;
+
+    public static void updateLastResponse(WeatherResponse weatherResponse) {
+        lastResponse = weatherResponse;
+    }
+
+    public static WeatherResponse getLastResponse() {
+        return lastResponse;
+    }
+
+    public static boolean isLastResponse() {
+        return lastResponse != null;
+    }
+}
+```
+Klasa trzymająca stan ostatniego WeatherResponse.
+
