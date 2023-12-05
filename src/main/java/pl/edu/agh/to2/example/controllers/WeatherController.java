@@ -3,11 +3,17 @@ package pl.edu.agh.to2.example.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import pl.edu.agh.to2.example.models.dto.WeatherRequestDto;
 import pl.edu.agh.to2.example.models.weather.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 import pl.edu.agh.to2.example.services.WeatherService;
+import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -20,7 +26,7 @@ import static org.springframework.http.HttpStatus.OK;
 @CrossOrigin()
 @RequestMapping("/weather")
 public class WeatherController {
-    WeatherService service;
+    private final WeatherService service;
 
     @Autowired
     public WeatherController(WeatherService service) {
@@ -44,9 +50,9 @@ public class WeatherController {
 
     @GetMapping("/current")
     public ResponseEntity<WeatherResponse> getLastWeatherResponse() {
-        if (!service.isLastResponse()) {
+        if (!ResponseHolder.isLastResponse()) {
             return new ResponseEntity<>(NOT_FOUND);
         }
-        return new ResponseEntity<>(service.getLastResponse(), OK);
+        return new ResponseEntity<>(ResponseHolder.getLastResponse(), OK);
     }
 }
