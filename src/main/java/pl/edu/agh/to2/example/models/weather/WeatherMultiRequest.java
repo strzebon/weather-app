@@ -1,6 +1,8 @@
 package pl.edu.agh.to2.example.models.weather;
 
-public record WeatherRequestConverted(
-        List<>
+import java.util.List;
+
+public record WeatherMultiRequest(
+        List<WeatherRequest> weatherRequests
 ) {
 }
