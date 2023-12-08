@@ -25,16 +25,20 @@ export default function Form() {
 
     const handleAddClick = (event) => {
         event.preventDefault()
-        setInputComponents(arr => [...arr, <FormInput key={inputCount} id={inputCount} handleChange={handleInputChange}/>])
-        setData(arr => [...arr, {coordinates: {lat: "", lng: ""}, validData: false}]);
-        setInputCount(inputCount => inputCount + 1);
+        if (inputCount < 5) {
+            setInputComponents(arr => [...arr, <FormInput key={inputCount} id={inputCount} handleChange={handleInputChange}/>])
+            setData(arr => [...arr, {coordinates: {lat: "", lng: ""}, validData: false}]);
+            setInputCount(inputCount => inputCount + 1);
+        }
     }
 
     const handleRemoveClick = (event) => {
         event.preventDefault()
-        setInputComponents(arr => arr.slice(0, -1));
-        setData(arr => arr.slice(0, -1));
-        setInputCount(inputCount => inputCount - 1)
+        if (inputCount > 1) {
+            setInputComponents(arr => arr.slice(0, -1));
+            setData(arr => arr.slice(0, -1));
+            setInputCount(inputCount => inputCount - 1)
+        }
     }
 
     const checkData = () => {
@@ -59,9 +63,11 @@ export default function Form() {
         <form className="latlong-form">
             <h1>Weather Form</h1>
             {inputComponents}
-            <button onClick={handleAddClick}>Add</button>
-            <button onClick={handleRemoveClick}>Remove</button>
-            <button onClick={formWeatherRequest}>Get Weather ⛅</button>
+            <div className="latlong-form-buttons">
+                <button onClick={handleAddClick} className="latlong-form-add material-symbols-outlined">add_circle</button>
+                <button onClick={handleRemoveClick} className="latlong-form-remove material-symbols-outlined">cancel</button>
+            </div>
+            <button onClick={formWeatherRequest} className="latlong-form-submit">Get Weather ⛅</button>
             {showSubmitError && <p className="form-error">* Invalid data in the form</p>}
         </form>
     )

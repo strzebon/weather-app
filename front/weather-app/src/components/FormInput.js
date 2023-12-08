@@ -1,4 +1,5 @@
 import { useState } from "react"
+import "../styles/FormInput.css"
 
 
 export default function FormInput(props) {
@@ -58,6 +59,7 @@ export default function FormInput(props) {
     
     return (
         <>
+            <h3>Location #{props.id + 1}</h3>
             <label htmlFor="lattitude">Lattitude</label>
             <input onChange={lattitudeValidation} name="lattitude" type="text"></input>
             {showErrorLattitude && <p className="form-error">* Lattitude must be between -90 and 90</p>}
