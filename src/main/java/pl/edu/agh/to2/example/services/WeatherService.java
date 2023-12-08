@@ -17,6 +17,7 @@ import pl.edu.agh.to2.example.models.weather.WeatherResponse;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,17 +25,19 @@ import java.util.Optional;
 @Service
 public class WeatherService {
 
-    private static final String URL_CURRENT = "http://api.weatherapi.com/v1/forecast.json";
+    private static final String URL_CURRENT = "http://api.weatherapi.com/v1/current.json";
     private static final String URL_FORECAST = "http://api.weatherapi.com/v1/forecast.json";
     private static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String LOCATION = "location";
     private static final String CURRENT = "current";
     private static final String CONDITION = "condition";
     private final OkHttpClient client;
+    private final Gson gson;
 
     @Autowired
-    public WeatherService(OkHttpClient client) {
+    public WeatherService(OkHttpClient client, Gson gson) {
         this.client = client;
+        this.gson = gson;
     }
 
     public Optional<WeatherResponse> findWeather(WeatherRequest weatherRequest) throws IOException {
@@ -66,37 +69,39 @@ public class WeatherService {
         return Optional.empty();
     }
 
-    public WeatherForecastResponse findWeatherForecast(WeatherRequest weatherRequest) throws IOException {
-        String params = weatherRequest.lat() + "," + weatherRequest.lng();
-        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
-                .addQueryParameter("key", API_KEY)
-                .addQueryParameter("q", params)
-                .addQueryParameter("days", "2");
-        Request request = new Request.Builder()
-                .url(builder.build())
-                .build();
+    public List<WeatherForecastResponse> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
+        List<WeatherForecastResponse> responses = new ArrayList<>();
+        for (WeatherRequest weatherRequest: weatherRequests) {
+            String params = weatherRequest.lat() + "," + weatherRequest.lng();
+            HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
+                    .addQueryParameter("key", API_KEY)
+                    .addQueryParameter("q", params)
+                    .addQueryParameter("days", "2");
+            Request request = new Request.Builder()
+                    .url(builder.build())
+                    .build();
 
-        try (Response response = client.newCall(request).execute()) {
-            if (response.code() == 200) {
-                JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
-                String location = json.getAsJsonObject(LOCATION).get("name").getAsString();
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
+                    String location = json.getAsJsonObject(LOCATION).get("name").getAsString();
 
-                JsonArray weathers = json.getAsJsonObject("forecast").getAsJsonArray("forecastday");
-                Gson gson = new Gson();
+                    JsonArray weathers = json.getAsJsonObject("forecast").getAsJsonArray("forecastday");
 
-                JsonArray todayWeatherJson = weathers.get(0).getAsJsonObject().getAsJsonArray("hour");
-                List<WeatherPerHour> todayWeather = List.of(gson.fromJson(todayWeatherJson, WeatherPerHour[].class));
+                    JsonArray todayWeatherJson = weathers.get(0).getAsJsonObject().getAsJsonArray("hour");
+                    List<WeatherPerHour> todayWeather = List.of(gson.fromJson(todayWeatherJson, WeatherPerHour[].class));
 
-                JsonArray tomorrowWeatherJson = weathers.get(1).getAsJsonObject().getAsJsonArray("hour");
-                List<WeatherPerHour> tomorrowWeather = List.of(gson.fromJson(tomorrowWeatherJson, WeatherPerHour[].class));
+                    JsonArray tomorrowWeatherJson = weathers.get(1).getAsJsonObject().getAsJsonArray("hour");
+                    List<WeatherPerHour> tomorrowWeather = List.of(gson.fromJson(tomorrowWeatherJson, WeatherPerHour[].class));
 
-                return new WeatherForecastResponse(location, todayWeather, tomorrowWeather);
+                    responses.add(new WeatherForecastResponse(location, todayWeather, tomorrowWeather));
+                }
+            } catch (IOException e) {
+                throw new IOException();
+            } catch (NullPointerException ignored) {
             }
-        } catch (IOException e) {
-            throw new IOException();
-        } catch (NullPointerException e) {
-            return null;
         }
-        return null;
+
+        return responses;
     }
 }
