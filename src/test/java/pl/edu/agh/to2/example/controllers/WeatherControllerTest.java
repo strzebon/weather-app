@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.dto.WeatherRequestDto;
-import pl.edu.agh.to2.example.models.weather.WeatherResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
 import pl.edu.agh.to2.example.services.WeatherService;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
 

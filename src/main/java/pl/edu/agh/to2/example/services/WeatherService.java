@@ -10,10 +10,13 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.to2.example.models.weather.WeatherForecastResponse;
+import pl.edu.agh.to2.example.converters.WeatherResponseConverter;
+import pl.edu.agh.to2.example.exceptions.MissingDataException;
+import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
-import pl.edu.agh.to2.example.models.weather.WeatherRequest;
-import pl.edu.agh.to2.example.models.weather.WeatherResponse;
+import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
@@ -69,9 +72,10 @@ public class WeatherService {
         return Optional.empty();
     }
 
-    public List<WeatherForecastResponse> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
+    public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException,
+            MissingDataException {
         List<WeatherForecastResponse> responses = new ArrayList<>();
-        for (WeatherRequest weatherRequest: weatherRequests) {
+        for (WeatherRequest weatherRequest : weatherRequests) {
             String params = weatherRequest.lat() + "," + weatherRequest.lng();
             HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
                     .addQueryParameter("key", API_KEY)
@@ -101,7 +105,9 @@ public class WeatherService {
             } catch (NullPointerException ignored) {
             }
         }
-
-        return responses;
+        if (responses.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses));
     }
 }

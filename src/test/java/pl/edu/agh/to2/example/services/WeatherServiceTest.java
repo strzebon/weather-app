@@ -10,8 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.Main;
-import pl.edu.agh.to2.example.models.weather.WeatherRequest;
-import pl.edu.agh.to2.example.models.weather.WeatherResponse;
+import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
 
 import java.io.IOException;
 import java.util.Optional;
