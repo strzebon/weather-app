@@ -72,8 +72,7 @@ public class WeatherService {
         return Optional.empty();
     }
 
-    public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException,
-            MissingDataException {
+    public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
         List<WeatherForecastResponse> responses = new ArrayList<>();
         for (WeatherRequest weatherRequest : weatherRequests) {
             String params = weatherRequest.lat() + "," + weatherRequest.lng();
@@ -103,11 +102,16 @@ public class WeatherService {
             } catch (IOException e) {
                 throw new IOException();
             } catch (NullPointerException ignored) {
+                return Optional.empty();
             }
         }
         if (responses.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses));
+        try {
+            return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses));
+        } catch (MissingDataException e) {
+            return Optional.empty();
+        }
     }
 }

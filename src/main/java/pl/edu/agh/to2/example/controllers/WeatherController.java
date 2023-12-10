@@ -39,7 +39,7 @@ public class WeatherController {
         Optional<WeatherResponseConverted> weatherResponse;
         try {
             weatherResponse = service.findWeatherForecast(weatherRequests);
-        } catch (IOException | MissingDataException ignored) {
+        } catch (IOException ignored) {
             return new ResponseEntity<>(BAD_GATEWAY);
         }
 

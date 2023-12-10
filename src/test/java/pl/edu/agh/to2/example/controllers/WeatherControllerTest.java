@@ -13,16 +13,23 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.dto.WeatherRequestDto;
+import pl.edu.agh.to2.example.models.weather.Precipitation;
+import pl.edu.agh.to2.example.models.weather.TemperatureLevel;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 import pl.edu.agh.to2.example.services.WeatherService;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
+import static java.util.Collections.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -38,7 +45,7 @@ class WeatherControllerTest {
     @Test
     void shouldReturnNotFoundWhenServiceStatusNotFound() throws Exception {
         //given
-        WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
+        List<WeatherRequestDto> weatherRequestDto = List.of(new WeatherRequestDto(1, 1));
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
         when(weatherService.findWeather(any())).thenReturn(Optional.empty());
 
@@ -49,9 +56,9 @@ class WeatherControllerTest {
     @Test
     void shouldReturnBadGatewayWhenServiceThrowsIOException() throws Exception {
         //given
-        WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
+        List<WeatherRequestDto> weatherRequestDto = List.of(new WeatherRequestDto(1, 1));
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
-        when(weatherService.findWeather(any())).thenThrow(IOException.class);
+        when(weatherService.findWeatherForecast(any())).thenThrow(IOException.class);
 
         mvc.perform(MockMvcRequestBuilders.post("/weather").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isBadGateway());
@@ -60,9 +67,10 @@ class WeatherControllerTest {
     @Test
     void shouldReturnOkWhenServiceStatusOk() throws Exception {
         //given
-        WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
+        List<WeatherRequestDto> weatherRequestDto = List.of(new WeatherRequestDto(1, 1));
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
-        when(weatherService.findWeather(any())).thenReturn(Optional.of(new WeatherResponse("any", 1, "any", "any", 1)));
+        when(weatherService.findWeatherForecast(any())).thenReturn(Optional.of(
+                new WeatherResponseConverted(emptyList(), COLD, true, List.of(Precipitation.NONE), 1, 1, 1)));
 
         mvc.perform(MockMvcRequestBuilders.post("/weather").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isOk());
