@@ -14,22 +14,20 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.dto.WeatherRequestDto;
 import pl.edu.agh.to2.example.models.weather.Precipitation;
-import pl.edu.agh.to2.example.models.weather.TemperatureLevel;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 import pl.edu.agh.to2.example.services.WeatherService;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.*;
+import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.COLD;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(

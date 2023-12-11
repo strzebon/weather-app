@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.Precipitation;
+import pl.edu.agh.to2.example.models.weather.TemperatureLevel;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
@@ -14,7 +15,7 @@ import java.util.List;
 import static java.lang.Math.sqrt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.WARM;
+import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.*;
 
 class ConversionTest {
     private List<WeatherForecastResponse> weatherForecastResponses;
@@ -49,5 +50,18 @@ class ConversionTest {
         assertEquals(MIN_TEMP, weatherResponseConverted.minTemp());
         assertEquals(MAX_PRECIP, weatherResponseConverted.maxPrecip());
         assertEquals(expectedSenseTemp, weatherResponseConverted.sensedTemp());
+    }
+
+    @Test
+    void testFreezingTemperatureLevel() {
+        // given
+        double freezingTemperature = -15.0;
+        TemperatureLevel expectedLevel = FREEZING;
+
+        // when
+        TemperatureLevel actualLevel = determineTemperatureLevel(freezingTemperature);
+
+        // then
+        assertEquals(expectedLevel, actualLevel);
     }
 }
