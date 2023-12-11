@@ -33,16 +33,20 @@ class WeatherResponseConverterTest {
     void shouldReturnProperResponseWhenGetProperData() {
         WeatherResponseConverted weatherResponseConverted = null;
         try (MockedStatic<WeatherCalculator> weatherCalculatorMocked = Mockito.mockStatic(WeatherCalculator.class)) {
+            //given
             weatherCalculatorMocked.when(() -> WeatherCalculator.findMinTemp(any())).thenReturn(VALUE_FOR_CONDITIONS);
             weatherCalculatorMocked.when(() -> WeatherCalculator.findMaxPrecip(any())).thenReturn(VALUE_FOR_CONDITIONS);
             weatherCalculatorMocked.when(() -> WeatherCalculator.findMaxWind(any())).thenReturn(VALUE_FOR_CONDITIONS);
             weatherCalculatorMocked.when(() -> WeatherCalculator.checkWillItRain(any())).thenReturn(true);
             weatherCalculatorMocked.when(() -> WeatherCalculator.checkWillItSnow(any())).thenReturn(true);
 
+            //when
             weatherResponseConverted = WeatherResponseConverter.convertWeatherResponse(weatherForecastResponses);
         } catch (MissingDataException e) {
             e.printStackTrace();
         }
+
+        //then
         assertNotNull(weatherResponseConverted);
         assertEquals(weatherResponseConverted.locations(), List.of(location1));
         assertEquals(weatherResponseConverted.minTemp(), VALUE_FOR_CONDITIONS);
@@ -54,6 +58,7 @@ class WeatherResponseConverterTest {
     @Test
     void shouldThrowExceptionWhenMethodInsideThrowsItAlso() {
         try (MockedStatic<WeatherCalculator> weatherCalculatorMocked = Mockito.mockStatic(WeatherCalculator.class)) {
+            //given
             weatherCalculatorMocked.when(() -> WeatherCalculator.findMinTemp(any())).thenThrow(MissingDataException.class);
 
             assertThrows(MissingDataException.class,

@@ -47,7 +47,7 @@ class WeatherControllerTest {
         //given
         List<WeatherRequestDto> weatherRequestDto = List.of(new WeatherRequestDto(1, 1));
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
-        when(weatherService.findWeather(any())).thenReturn(Optional.empty());
+        when(weatherService.findWeatherForecast(any())).thenReturn(Optional.empty());
 
         mvc.perform(MockMvcRequestBuilders.post("/weather").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
