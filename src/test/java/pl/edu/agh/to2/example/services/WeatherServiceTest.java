@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
@@ -50,24 +49,15 @@ class WeatherServiceTest {
     @Mock
     private Response response;
     @Mock
-    private JsonObject locationObject;
+    private JsonObject locationObject, currentDeeperObject, currentObject;
     @Mock
-    private JsonElement locationElement;
-    @Mock
-    private JsonObject currentObject;
-    @Mock
-    private JsonObject currentDeeperObject;
-    @Mock
-    private JsonElement tempElement;
-    @Mock
-    private JsonElement imgElement;
-    @Mock
-    private JsonElement precipElement;
-    @Mock
-    private JsonElement conditionElement;
+    private JsonElement conditionElement, jsonElement, precipElement, imgElement, tempElement, locationElement;
 
-    @Mock
-    private JsonElement jsonElement;
+    private static final String LOCATION_1 = "London";
+    private static final double TEMP = 5.0;
+    private static final String IMG_PATH = "/img/path";
+    private static final String SOME_CONDITION = "Some condition";
+    private static final double PRECIP = 3.0;
 
     private static final String LOCATION = "location";
     private static final String CURRENT = "current";
@@ -89,42 +79,14 @@ class WeatherServiceTest {
     @Test
     void shouldReturnNonemptyWhenRightCoordinates() throws Exception {
         //given
-        String location1 = "London";
-        double temp = 5.0;
-        String impPath = "/img/path";
-        String condition = "Condition";
-        double precip = 3.0;
+        String[] imgPathConverted = IMG_PATH.split("/");
+        String img_path = imgPathConverted[imgPathConverted.length - 2] + "/" + imgPathConverted[imgPathConverted.length - 1];
+
+        applyMocks();
 
         Optional<WeatherResponse> finalResponse;
-
-        when(response.code()).thenReturn(200);
-        when(response.body()).thenReturn(responseBody);
-        when(okHttpClient.newCall(any())).thenReturn(call);
-        when(okHttpClient.newCall(any()).execute()).thenReturn(response);
-
-        when(json.getAsJsonObject(LOCATION)).thenReturn(locationObject);
-        when(locationObject.get("name")).thenReturn(locationElement);
-        when(locationElement.getAsString()).thenReturn(location1);
-
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.get("temp_c")).thenReturn(tempElement);
-        when(tempElement.getAsString()).thenReturn(String.valueOf(temp));
-
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.getAsJsonObject(CONDITION)).thenReturn(currentDeeperObject);
-        when(currentDeeperObject.get("icon")).thenReturn(imgElement);
-        when(imgElement.getAsString()).thenReturn(impPath);
-
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.getAsJsonObject(CONDITION)).thenReturn(currentDeeperObject);
-        when(currentDeeperObject.get("text")).thenReturn(conditionElement);
-        when(conditionElement.getAsString()).thenReturn(condition);
-
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.get("precip_mm")).thenReturn(precipElement);
-        when(precipElement.getAsString()).thenReturn(String.valueOf(precip));
-
         try (MockedStatic<JsonParser> jsonParserMocked = Mockito.mockStatic(JsonParser.class)) {
+            //given
             jsonParserMocked.when(() -> JsonParser.parseString(any())).thenReturn(jsonElement);
             jsonParserMocked.when(() -> JsonParser.parseString(any()).getAsJsonObject()).thenReturn(json);
 
@@ -135,13 +97,11 @@ class WeatherServiceTest {
         //then
         assertTrue(finalResponse.isPresent());
         WeatherResponse weatherResponse = finalResponse.get();
-        assertEquals(location1, weatherResponse.location());
-        assertEquals(temp, weatherResponse.temp_c());
-        String[] imgPathConverted = impPath.split("/");
-        String img_path = imgPathConverted[imgPathConverted.length - 2] + "/" + imgPathConverted[imgPathConverted.length - 1];
+        assertEquals(LOCATION_1, weatherResponse.location());
+        assertEquals(TEMP, weatherResponse.temp_c());
         assertEquals(img_path, weatherResponse.img_path());
-        assertEquals(condition, weatherResponse.condition());
-        assertEquals(precip, weatherResponse.precip_mm());
+        assertEquals(SOME_CONDITION, weatherResponse.condition());
+        assertEquals(PRECIP, weatherResponse.precip_mm());
     }
 
     @Test
@@ -151,5 +111,36 @@ class WeatherServiceTest {
         when(okHttpClient.newCall(any()).execute()).thenThrow(IOException.class);
 
         assertThrows(IOException.class, () -> service.findWeatherForecast(List.of(new WeatherRequest(1, 1))));
+    }
+
+
+    private void applyMocks() throws IOException {
+        //given
+        when(response.code()).thenReturn(200);
+        when(response.body()).thenReturn(responseBody);
+        when(okHttpClient.newCall(any())).thenReturn(call);
+        when(okHttpClient.newCall(any()).execute()).thenReturn(response);
+
+        when(json.getAsJsonObject(LOCATION)).thenReturn(locationObject);
+        when(locationObject.get("name")).thenReturn(locationElement);
+        when(locationElement.getAsString()).thenReturn(LOCATION_1);
+
+        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
+        when(currentObject.get("temp_c")).thenReturn(tempElement);
+        when(tempElement.getAsString()).thenReturn(String.valueOf(TEMP));
+
+        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
+        when(currentObject.getAsJsonObject(CONDITION)).thenReturn(currentDeeperObject);
+        when(currentDeeperObject.get("icon")).thenReturn(imgElement);
+        when(imgElement.getAsString()).thenReturn(IMG_PATH);
+
+        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
+        when(currentObject.getAsJsonObject(CONDITION)).thenReturn(currentDeeperObject);
+        when(currentDeeperObject.get("text")).thenReturn(conditionElement);
+        when(conditionElement.getAsString()).thenReturn(SOME_CONDITION);
+
+        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
+        when(currentObject.get("precip_mm")).thenReturn(precipElement);
+        when(precipElement.getAsString()).thenReturn(String.valueOf(PRECIP));
     }
 }
