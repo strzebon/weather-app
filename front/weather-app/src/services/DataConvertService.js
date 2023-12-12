@@ -28,7 +28,7 @@ const DataConvertService = {
         }
     },
     getLocations: (locations) => {
-        return locations.join(" - ");
+        return locations.join(", ");
     }
 }
 

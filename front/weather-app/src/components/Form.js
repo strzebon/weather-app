@@ -52,7 +52,7 @@ export default function Form() {
             setTimeoutId(setTimeout(() => {setShowSubmitError(false)}, 3000))
         } else {
             WeatherService.getWeatherByCoordinates(data.map(element => element.coordinates))
-                .then(navigate("/weather"))
+                .then(() => {navigate("/weather")})
                 .catch(error => console.log(error));
         }
     }
