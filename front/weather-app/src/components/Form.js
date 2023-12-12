@@ -7,6 +7,7 @@ import FormInput from "./FormInput";
 export default function Form() {
 
     const handleInputChange = (coordinatesData, id) => {
+        console.log(coordinatesData);
         setData(prevData => prevData.map((item, index) => (index === id ? coordinatesData : item)));
     }
 
@@ -61,8 +62,8 @@ export default function Form() {
             <h1>Weather Form</h1>
             {inputComponents}
             <div className="latlong-form-buttons">
-                <button onClick={handleAddClick} className="latlong-form-add material-symbols-outlined">add_circle</button>
-                <button onClick={handleRemoveClick} className="latlong-form-remove material-symbols-outlined">cancel</button>
+                <button onClick={handleAddClick} className={`latlong-form-${inputCount === 5 ? "disabled" : "add"} material-symbols-outlined`}>add_circle</button>
+                <button onClick={handleRemoveClick} className={`latlong-form-${inputCount === 1 ? "disabled" : "remove"} material-symbols-outlined`}>cancel</button>
             </div>
             <button onClick={formWeatherRequest} className="latlong-form-submit">Get Weather ⛅</button>
             {showSubmitError && <p className="form-error">* Invalid data in the form</p>}

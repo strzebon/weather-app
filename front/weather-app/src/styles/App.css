@@ -11,5 +11,5 @@ body * {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    padding: 40px 50px 0px;
+    padding: 40px 50px 30px;
 }

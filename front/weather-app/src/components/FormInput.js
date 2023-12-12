@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "../styles/FormInput.css"
 
 
@@ -8,14 +8,16 @@ export default function FormInput(props) {
     const [showErrorLattitude, setShowErrorLattitude] = useState(true);
     const [showErrorLongitude, setShowErrorLongitude] = useState(true);
 
+    useEffect(() => {
+        setInputInfo();
+    }, [lattitude, longitude, showErrorLattitude, showErrorLongitude]);
+
 
     const lattitudeValidation = (event) => {
         let val = event.target.value;
         setLattitude(val);
         if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
             setShowErrorLattitude(true);
-            setInputInfo();
-            return;
         }
         let floatVal = parseFloat(val); 
         if (floatVal < 90 && floatVal > -90) {
@@ -23,7 +25,6 @@ export default function FormInput(props) {
         } else {
             setShowErrorLattitude(true);
         }
-        setInputInfo();
     }
 
     const longitudeValidation = (event) => {
@@ -31,8 +32,6 @@ export default function FormInput(props) {
         setLongitude(val);
         if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
             setShowErrorLongitude(true);
-            setInputInfo();
-            return;
         }
         let floatVal = parseFloat(val); 
         if (floatVal < 180 && floatVal > -180) {
@@ -40,7 +39,6 @@ export default function FormInput(props) {
         } else {
             setShowErrorLongitude(true);
         }
-        setInputInfo();
     }
 
     const setInputInfo = () => {

@@ -41,6 +41,10 @@
     color: aliceblue;
 }
 
+.latlong-form-disabled {
+    background-color: gray;
+}
+
 .latlong-form-submit {
     margin-top: 25px;
     padding: 8px 0px 8px;
