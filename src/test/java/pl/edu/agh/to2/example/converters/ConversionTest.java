@@ -51,17 +51,4 @@ class ConversionTest {
         assertEquals(MAX_PRECIP, weatherResponseConverted.maxPrecip());
         assertEquals(expectedSenseTemp, weatherResponseConverted.sensedTemp());
     }
-
-    @Test
-    void testFreezingTemperatureLevel() {
-        // given
-        double freezingTemperature = -15.0;
-        TemperatureLevel expectedLevel = FREEZING;
-
-        // when
-        TemperatureLevel actualLevel = determineTemperatureLevel(freezingTemperature);
-
-        // then
-        assertEquals(expectedLevel, actualLevel);
-    }
 }

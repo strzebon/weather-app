@@ -12,9 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.to2.example.converters.WeatherResponseConverter;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
-import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
+import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 import java.io.IOException;
@@ -25,8 +25,6 @@ import java.util.Optional;
 
 @Service
 public class WeatherService {
-
-    private static final String URL_CURRENT = "http://api.weatherapi.com/v1/current.json";
     private static final String URL_FORECAST = "http://api.weatherapi.com/v1/forecast.json";
     private static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String LOCATION = "location";
@@ -47,7 +45,9 @@ public class WeatherService {
 
             try (Response response = client.newCall(request).execute()) {
                 if (response.code() == 200) {
-                    responses.add(getValuesFromJson(response));
+                    WeatherForecastResponse valuesFromJson = getValuesFromJson(response);
+//                    todo add to ResponseHolder
+                    responses.add(valuesFromJson);
                 }
             } catch (IOException e) {
                 throw new IOException();
