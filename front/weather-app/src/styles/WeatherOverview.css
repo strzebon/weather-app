@@ -1,9 +1,22 @@
 .weather-overview-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 400px;
+}
+
+.weather-overview-container .information-container {
     width: 100%;
     padding: 20px;
     display: flex;
     align-items: center;
     flex-direction: column;
+}
+
+.weather-overview-container .weather-img-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }
 
 .weather-city-name {
@@ -23,4 +36,240 @@
 
 .weather-condition {
     font-weight: 300;
+}
+
+.thermometer-container * {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.thermometer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.thermometer-container .logo {
+    position: relative;
+    height: 450px;
+    width: 100px;
+}
+
+.thermometer-container .bar {
+    z-index: 1;
+    height: 350px;
+    width: 40px;
+    background-color: black;
+    border-radius: 20px 20px 0 0;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+.thermometer-container .circle {
+    height: 100px;
+    width: 100px;
+    background-color: black;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+}
+
+.thermometer-container .circle::after {
+    content: "";
+    display: block;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ff3d00;
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 4px solid white;
+    animation: hotAnimCircle 3s linear;
+}
+
+.thermometer-container .bar::after {
+    content: "";
+    display: block;
+    width: 20px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -16px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0px 24px 3px -24px white;
+    border: 4px solid white;
+    border-bottom: 0;
+}
+
+.thermometer-container .hot-bar::after {
+    background-color: #ff3d00;
+    animation: hotAnim 3s linear;
+    height: 350px;
+}
+
+.thermometer-container .hot-circle::after {
+    background-color: #ff3d00;
+    animation: hotAnimCircle 3s linear;
+}
+
+.thermometer-container .warm-bar::after {
+    background-color: orange;
+    animation: warmAnim 3s linear;
+    height: 75%;
+}
+
+.thermometer-container .warm-circle::after {
+    background-color: orange;
+    animation: warmAnimCircle 3s linear;   
+}
+
+.thermometer-container .cold-bar::after {
+    background-color: yellow;
+    animation: coldAnim 3s linear;
+    height: 50%;
+}
+
+.thermometer-container .cold-circle::after {
+    background-color: yellow;
+    animation: coldAnimCircle 3s linear;
+}
+
+.thermometer-container .freezing-bar::after {
+    background-color: aqua;
+    animation: freezingAnim 3s linear;
+    height: 25%;
+}
+
+.thermometer-container .freezing-circle::after {
+    background-color: aqua;
+    animation: freezingAnimCircle 3s linear;
+}
+
+@keyframes hotAnim {
+    0% {
+        height: 5%;
+        background-color: aqua;
+    }
+    25% {
+        background-color: aqua;
+        height: 25%;
+    }
+    50% {
+        height: 50%;
+        background-color: yellow;
+    }
+    75% {
+        height: 75%; 
+        background-color: orange;
+    }
+    100% {
+        height: 100%;
+        background-color: #ff3d00;
+    }
+}
+
+@keyframes hotAnimCircle {
+    0% {
+        background-color: aqua;
+    }
+    25% {
+        background-color: aqua;
+    }
+    50% {
+        background-color: yellow;
+    }
+    75% {
+        background-color: orange;
+    }
+    100% {
+        background-color: #ff3d00;
+    }
+}
+
+@keyframes warmAnim {
+    0% {
+        height: 5%;
+        background-color: aqua;
+    }
+    33% {
+        background-color: aqua;
+        height: 25%;
+    }
+    66% {
+        height: 50%;
+        background-color: yellow;
+    }
+    100% {
+        height: 75%; 
+        background-color: orange;
+    }
+}
+
+@keyframes warmAnimCircle {
+    0% {
+        background-color: aqua;
+    }
+    33% {
+        background-color: aqua;
+    }
+    66% {
+        background-color: yellow;
+    }
+    100% {
+        background-color: orange;
+    }
+}
+
+
+@keyframes coldAnim {
+    0% {
+        height: 5%;
+        background-color: aqua;
+    }
+    50% {
+        background-color: aqua;
+        height: 25%;
+    }
+    100% {
+        height: 50%;
+        background-color: yellow;
+    }
+}
+
+@keyframes coldAnimCircle {
+    0% {
+        background-color: aqua;
+    }
+    50% {
+        background-color: aqua;
+    }
+    100% {
+        background-color: yellow;
+    }
+}
+
+@keyframes freezingAnim {
+    0% {
+        height: 5%;
+        background-color: aqua;
+    }
+    100% {
+        background-color: aqua;
+        height: 25%;
+    }
+}
+
+@keyframes freezingAnimCircle {
+    0% {
+        background-color: aqua;
+    }
+    100% {
+        background-color: aqua;
+    }
 }
