@@ -19,6 +19,7 @@ sleep 5
 
 echo "Uruchamianie aplikacji React..."
 cd front/weather-app
+npm install > /dev/null 2>&1
 npm start > /dev/null 2>&1 &
 pids+=($!)
 npm_pid=$!

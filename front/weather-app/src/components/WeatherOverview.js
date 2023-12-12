@@ -3,10 +3,19 @@ import "../styles/WeatherOverview.css"
 export default function WeatherOverview(props) {
     return (
     <div className="weather-overview-container">
-        <h2 className="weather-city-name">{props.location}</h2>
-        <img className="weather-img-present" src={require(`../images/${props.img_path}`)} alt={props.condition}/>
-        <h3 className="weather-temperature">{props.temp_c}&#176;C</h3>
-        <h4 className="weather-condition">{props.condition}</h4>
+        <div className="thermometer-container">
+            <div className="logo">
+                <div className={`bar ${props.classNames}-bar`}></div>
+                <div className={`circle ${props.classNames}-circle`}></div>
+            </div>
+        </div>
+        <div className="information-container">
+            <h2 className="weather-city-name">{props.locations}</h2>
+            <span className="weather-img-container">{props.img.map(img => <img src={img} alt="conditions" className="weather-img-present"/>)}</span>
+            <img className="weather-img-present" src={props.img} alt={props.condition}/>
+            <h3 className="weather-temperature">{props.tempC}&#176;C</h3>
+            <h4 className="weather-condition">{props.condition}</h4>
+        </div>
     </div>
     )
 }

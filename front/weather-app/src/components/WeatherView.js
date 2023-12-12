@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import WeatherService from "../services/WeatherService"
 import WeatherOverview from "./WeatherOverview";
 import "../styles/WeatherView.css"
+import DataConvertService from "../services/DataConvertService";
 
 export default function WeatherView() {
     
@@ -10,8 +11,20 @@ export default function WeatherView() {
     useEffect(() => {
     const fetchData = async () => {
     try {
-        const currentWeather = await WeatherService.getCurrentWeather();
-        setWeatherInfo(currentWeather)
+        const currentWeather = WeatherService.getCurrentWeather();
+        currentWeather.then(data => {
+            let imgArray = DataConvertService.getPrecipitation(data.precipitation);
+            DataConvertService.getWind(data.isWindy, imgArray);
+            let classNames = DataConvertService.getTemperature(data.temperatureLevel);
+            let weatherData = {
+                img: imgArray,
+                classNames: classNames,
+                locations: data.locations,
+                tempC: data.sensedTemp,
+                condition: data.temperatureLevel
+            };
+            setWeatherInfo(weatherData)
+        })
       } catch (error) {
         console.error(error.message);
       }

@@ -3,11 +3,10 @@ import axios from 'axios';
 const enpointURL = 'http://127.0.0.1:8080';
 
 const WeatherService = {
-  getWeatherByCoordinates: async (lattitude, longitude) => {
+  getWeatherByCoordinates: async (coordinates) => {
     try {
       const response = await axios.post(`${enpointURL}/weather`, {
-          lat: lattitude,
-          lng: longitude,
+          coordinates
         }
       );
       return response.data;
