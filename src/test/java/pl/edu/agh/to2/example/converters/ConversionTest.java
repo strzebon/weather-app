@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.Precipitation;
-import pl.edu.agh.to2.example.models.weather.TemperatureLevel;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
@@ -46,7 +45,7 @@ class ConversionTest {
         assertEquals(List.of(location1), weatherResponseConverted.locations());
         assertEquals(WARM, weatherResponseConverted.temperatureLevel());
         assertFalse(weatherResponseConverted.isWindy());
-        assertEquals(List.of(Precipitation.NONE), weatherResponseConverted.precipitation());
+        assertEquals(List.of(Precipitation.CLEAR), weatherResponseConverted.precipitation());
         assertEquals(MIN_TEMP, weatherResponseConverted.minTemp());
         assertEquals(MAX_PRECIP, weatherResponseConverted.maxPrecip());
         assertEquals(expectedSenseTemp, weatherResponseConverted.sensedTemp());

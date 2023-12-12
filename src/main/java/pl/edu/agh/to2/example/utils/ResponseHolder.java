@@ -1,15 +1,16 @@
 package pl.edu.agh.to2.example.utils;
 
-import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
+//import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 public class ResponseHolder {
-    private static WeatherResponse lastResponse = null;
+    private static WeatherResponseConverted lastResponse = null;
 
-    public static void updateLastResponse(WeatherResponse weatherResponse) {
+    public static void updateLastResponse(WeatherResponseConverted weatherResponse) {
         lastResponse = weatherResponse;
     }
 
-    public static WeatherResponse getLastResponse() {
+    public static WeatherResponseConverted getLastResponse() {
         return lastResponse;
     }
 

@@ -11,20 +11,22 @@ export default function WeatherView() {
     useEffect(() => {
     const fetchData = async () => {
     try {
-        const currentWeather = WeatherService.getCurrentWeather();
-        currentWeather.then(data => {
-            let imgArray = DataConvertService.getPrecipitation(data.precipitation);
-            DataConvertService.getWind(data.isWindy, imgArray);
-            let classNames = DataConvertService.getTemperature(data.temperatureLevel);
-            let weatherData = {
-                img: imgArray,
-                classNames: classNames,
-                locations: data.locations,
-                tempC: data.sensedTemp,
-                condition: data.temperatureLevel
-            };
-            setWeatherInfo(weatherData)
-        })
+        WeatherService.getCurrentWeather()
+            .then(data => {
+                console.log(data.precipitation);
+                let imgArray = DataConvertService.getPrecipitation(data.precipitation);
+                // let imgArray = [];
+                DataConvertService.getWind(data.isWindy, imgArray);
+                let classNames = DataConvertService.getTemperature(data.temperatureLevel);
+                let weatherData = {
+                    img: imgArray,
+                    classNames: classNames,
+                    locations: DataConvertService.getLocations(data.locations),
+                    tempC: Math.round(data.sensedTemp),
+                    condition: data.temperatureLevel
+                };
+                setWeatherInfo(weatherData)
+        }).catch(error => console.error(error.message));
       } catch (error) {
         console.error(error.message);
       }
@@ -38,7 +40,7 @@ export default function WeatherView() {
     
     return (
         <div className="weather-container">
-            <WeatherOverview {...weatherInfo}/>
+            {weatherInfo && <WeatherOverview {...weatherInfo}/>}
         </div>
     )
 }

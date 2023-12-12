@@ -6,7 +6,7 @@ import java.util.List;
 public enum Precipitation {
     SNOW,
     RAIN,
-    NONE;
+    CLEAR;
 
     public static List<Precipitation> prepareListOfPrecipitations(boolean willItRain, boolean willItSnow) {
         List<Precipitation> precipitations = new ArrayList<>();
@@ -17,7 +17,7 @@ public enum Precipitation {
             precipitations.add(SNOW);
         }
         if (precipitations.isEmpty()) {
-            precipitations.add(NONE);
+            precipitations.add(CLEAR);
         }
         return precipitations;
     }

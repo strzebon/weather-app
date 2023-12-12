@@ -7,9 +7,7 @@ import FormInput from "./FormInput";
 export default function Form() {
 
     const handleInputChange = (coordinatesData, id) => {
-        let newData = [...data]
-        newData[id] = coordinatesData;
-        setData(newData);
+        setData(prevData => prevData.map((item, index) => (index === id ? coordinatesData : item)));
     }
 
     const [inputComponents, setInputComponents] = useState([<FormInput key={0} id={0} handleChange={handleInputChange}/>]);
@@ -47,7 +45,6 @@ export default function Form() {
 
     const formWeatherRequest = (event) => {
         event.preventDefault();
-        console.log(data);
         if (checkData()) {
             clearTimeout(timeoutId);
             setShowSubmitError(true);

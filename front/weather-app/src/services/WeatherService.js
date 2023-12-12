@@ -5,10 +5,8 @@ const enpointURL = 'http://127.0.0.1:8080';
 const WeatherService = {
   getWeatherByCoordinates: async (coordinates) => {
     try {
-      const response = await axios.post(`${enpointURL}/weather`, {
-          coordinates
-        }
-      );
+      const response = await axios.post(`${enpointURL}/weather`, coordinates);
+      console.log(response.data);
       return response.data;
     } catch (error) {
       throw new Error('Failed to fetch weather data by coordinates');

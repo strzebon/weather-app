@@ -16,6 +16,7 @@ import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
+import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class WeatherService {
             return Optional.empty();
         }
         try {
+            ResponseHolder.updateLastResponse(WeatherResponseConverter.convertWeatherResponse(responses));
             return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses));
         } catch (MissingDataException e) {
             return Optional.empty();

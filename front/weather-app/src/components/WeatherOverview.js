@@ -12,7 +12,6 @@ export default function WeatherOverview(props) {
         <div className="information-container">
             <h2 className="weather-city-name">{props.locations}</h2>
             <span className="weather-img-container">{props.img.map(img => <img src={img} alt="conditions" className="weather-img-present"/>)}</span>
-            <img className="weather-img-present" src={props.img} alt={props.condition}/>
             <h3 className="weather-temperature">{props.tempC}&#176;C</h3>
             <h4 className="weather-condition">{props.condition}</h4>
         </div>

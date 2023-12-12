@@ -53,7 +53,7 @@ public class WeatherController {
     }
 
     @GetMapping("/current")
-    public ResponseEntity<WeatherResponse> getLastWeatherResponse() {
+    public ResponseEntity<WeatherResponseConverted> getLastWeatherResponse() {
         if (!ResponseHolder.isLastResponse()) {
             return new ResponseEntity<>(NOT_FOUND);
         }
