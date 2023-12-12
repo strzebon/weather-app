@@ -1,4 +1,4 @@
-package pl.edu.agh.to2.example.models.weather;
+package pl.edu.agh.to2.example.models.weather.request;
 
 import java.util.List;
 

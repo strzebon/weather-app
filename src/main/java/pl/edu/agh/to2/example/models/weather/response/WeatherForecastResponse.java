@@ -1,4 +1,6 @@
-package pl.edu.agh.to2.example.models.weather;
+package pl.edu.agh.to2.example.models.weather.response;
+
+import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 
 import java.util.List;
 

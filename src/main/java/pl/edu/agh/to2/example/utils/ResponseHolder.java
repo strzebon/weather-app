@@ -1,6 +1,6 @@
 package pl.edu.agh.to2.example.utils;
 
-import pl.edu.agh.to2.example.models.weather.WeatherResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
 
 public class ResponseHolder {
     private static WeatherResponse lastResponse = null;
