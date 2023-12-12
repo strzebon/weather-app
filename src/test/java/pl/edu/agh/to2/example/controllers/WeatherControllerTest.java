@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.dto.WeatherRequestDto;
 import pl.edu.agh.to2.example.models.weather.Precipitation;
-import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 import pl.edu.agh.to2.example.services.WeatherService;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
@@ -88,7 +87,8 @@ class WeatherControllerTest {
         //given
         WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
-        ResponseHolder.updateLastResponse(new WeatherResponse("any", 1, "any", "any", 1));
+        ResponseHolder.updateLastResponse(new WeatherResponseConverted(List.of("any"), COLD, true, List.of(Precipitation.CLEAR),
+                1.0, 2.0, 3.0));
 
         mvc.perform(MockMvcRequestBuilders.get("/weather/current").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isOk());
