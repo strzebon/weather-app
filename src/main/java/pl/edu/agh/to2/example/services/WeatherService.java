@@ -47,7 +47,6 @@ public class WeatherService {
             try (Response response = client.newCall(request).execute()) {
                 if (response.code() == 200) {
                     WeatherForecastResponse valuesFromJson = getValuesFromJson(response);
-//                    todo add to ResponseHolder
                     responses.add(valuesFromJson);
                 }
             } catch (IOException e) {
