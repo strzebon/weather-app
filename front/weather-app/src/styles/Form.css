@@ -1,0 +1,46 @@
+.latlong-form {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    margin-top: 80px;
+    border: 1px solid black;
+    box-shadow: 8px 8px 24px 0px rgb(118, 120, 139);
+    width: 330px;
+}
+
+.latlong-form > label {
+    padding-top: 10px;
+}
+
+.latlong-form > input {
+    margin-top: 5px;
+    padding: 8px;
+    color: rgb(58, 57, 57);
+    font-weight: 300;
+}
+
+.latlong-form > button {
+    margin-top: 25px;
+    padding: 8px 0px 8px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 17px;
+    background-color: #00cdac;
+    color: white;
+    font-weight: 500;
+}
+
+.latlong-form > button:hover {
+    background-color: #01a58a;
+}
+
+.latlong-form > h1 {
+    align-self: center;
+    font-weight: 600;
+}
+
+.form-error {
+    color: red;
+    font-size: 14px;
+    margin: 7px 0px 0px;
+}
