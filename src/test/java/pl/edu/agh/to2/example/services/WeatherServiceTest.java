@@ -1,5 +1,7 @@
 package pl.edu.agh.to2.example.services;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -17,8 +19,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.Main;
+import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
-import pl.edu.agh.to2.example.models.weather.response.WeatherResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 import java.io.IOException;
@@ -28,6 +30,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -40,28 +43,29 @@ class WeatherServiceTest {
     private WeatherService service;
     @MockBean
     private OkHttpClient okHttpClient;
+    @MockBean
+    private Gson gson;
     @Mock
     private Call call;
     @Mock
     private ResponseBody responseBody;
     @Mock
-    private JsonObject json;
-    @Mock
     private Response response;
     @Mock
-    private JsonObject locationObject, currentDeeperObject, currentObject;
+    private JsonArray weathers, todayWeatherJsonArray;
     @Mock
-    private JsonElement conditionElement, jsonElement, precipElement, imgElement, tempElement, locationElement;
+    private JsonObject json, locationObject, currentObject, weatherObject;
+    @Mock
+    private JsonElement jsonElement, locationElement, weatherElement;
 
     private static final String LOCATION_1 = "London";
     private static final double TEMP = 5.0;
-    private static final String IMG_PATH = "/img/path";
-    private static final String SOME_CONDITION = "Some condition";
     private static final double PRECIP = 3.0;
+    private static final double WIND = 2.0;
+    private static final int FLAG_TRUE = 1;
 
     private static final String LOCATION = "location";
-    private static final String CURRENT = "current";
-    private static final String CONDITION = "condition";
+    private static final String FORECAST = "forecast";
 
     @Test
     void shouldReturnEmptyWhenNewCallIsNull() throws Exception {
@@ -77,34 +81,6 @@ class WeatherServiceTest {
     }
 
     @Test
-    void shouldReturnNonemptyWhenRightCoordinates() throws Exception {
-        //given
-        String[] imgPathConverted = IMG_PATH.split("/");
-        String img_path = imgPathConverted[imgPathConverted.length - 2] + "/" + imgPathConverted[imgPathConverted.length - 1];
-
-        applyMocks();
-
-        Optional<WeatherResponse> finalResponse;
-        try (MockedStatic<JsonParser> jsonParserMocked = Mockito.mockStatic(JsonParser.class)) {
-            //given
-            jsonParserMocked.when(() -> JsonParser.parseString(any())).thenReturn(jsonElement);
-            jsonParserMocked.when(() -> JsonParser.parseString(any()).getAsJsonObject()).thenReturn(json);
-
-            //when
-            finalResponse = service.findWeather(new WeatherRequest(1, 1));
-        }
-
-        //then
-        assertTrue(finalResponse.isPresent());
-        WeatherResponse weatherResponse = finalResponse.get();
-        assertEquals(LOCATION_1, weatherResponse.location());
-        assertEquals(TEMP, weatherResponse.temp_c());
-        assertEquals(img_path, weatherResponse.img_path());
-        assertEquals(SOME_CONDITION, weatherResponse.condition());
-        assertEquals(PRECIP, weatherResponse.precip_mm());
-    }
-
-    @Test
     void shouldThrowExceptionWhenProblemWithExecute() throws IOException {
         //given
         when(okHttpClient.newCall(any())).thenReturn(call);
@@ -113,9 +89,40 @@ class WeatherServiceTest {
         assertThrows(IOException.class, () -> service.findWeatherForecast(List.of(new WeatherRequest(1, 1))));
     }
 
+    @Test
+    void shouldReturnProperValuesInResponseWhenRightCoordinates() throws Exception {
+        //given
+        int locationSize = 1;
+
+        applyMocks();
+
+        Optional<WeatherResponseConverted> finalResponse;
+        try (MockedStatic<JsonParser> jsonParserMocked = Mockito.mockStatic(JsonParser.class)) {
+            //given
+            jsonParserMocked.when(() -> JsonParser.parseString(any())).thenReturn(jsonElement);
+            jsonParserMocked.when(() -> JsonParser.parseString(any()).getAsJsonObject()).thenReturn(json);
+
+            //when
+            finalResponse = service.findWeatherForecast(List.of(new WeatherRequest(1, 1)));
+        }
+
+        //then
+        assertTrue(finalResponse.isPresent());
+        WeatherResponseConverted weatherResponse = finalResponse.get();
+        assertEquals(locationSize, weatherResponse.locations().size());
+        assertEquals(LOCATION_1, weatherResponse.locations().get(0));
+        assertEquals(TEMP, weatherResponse.minTemp());
+        assertEquals(PRECIP, weatherResponse.maxPrecip());
+    }
+
 
     private void applyMocks() throws IOException {
         //given
+        String hourTitle = "hour";
+        WeatherPerHour[] weatherPerHour = new WeatherPerHour[]{
+                new WeatherPerHour(null, TEMP, PRECIP, WIND, FLAG_TRUE, FLAG_TRUE)
+        };
+
         when(response.code()).thenReturn(200);
         when(response.body()).thenReturn(responseBody);
         when(okHttpClient.newCall(any())).thenReturn(call);
@@ -125,22 +132,14 @@ class WeatherServiceTest {
         when(locationObject.get("name")).thenReturn(locationElement);
         when(locationElement.getAsString()).thenReturn(LOCATION_1);
 
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.get("temp_c")).thenReturn(tempElement);
-        when(tempElement.getAsString()).thenReturn(String.valueOf(TEMP));
+        when(json.getAsJsonObject(FORECAST)).thenReturn(currentObject);
+        when(currentObject.getAsJsonArray("forecastday")).thenReturn(weathers);
 
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.getAsJsonObject(CONDITION)).thenReturn(currentDeeperObject);
-        when(currentDeeperObject.get("icon")).thenReturn(imgElement);
-        when(imgElement.getAsString()).thenReturn(IMG_PATH);
+        when(weathers.get(anyInt())).thenReturn(weatherElement);
+        when(weatherElement.getAsJsonObject()).thenReturn(weatherObject);
+        when(weatherObject.getAsJsonArray(hourTitle)).thenReturn(todayWeatherJsonArray);
+        when(todayWeatherJsonArray.size()).thenReturn(0);
 
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.getAsJsonObject(CONDITION)).thenReturn(currentDeeperObject);
-        when(currentDeeperObject.get("text")).thenReturn(conditionElement);
-        when(conditionElement.getAsString()).thenReturn(SOME_CONDITION);
-
-        when(json.getAsJsonObject(CURRENT)).thenReturn(currentObject);
-        when(currentObject.get("precip_mm")).thenReturn(precipElement);
-        when(precipElement.getAsString()).thenReturn(String.valueOf(PRECIP));
+        when(gson.fromJson(todayWeatherJsonArray, WeatherPerHour[].class)).thenReturn(weatherPerHour);
     }
 }
