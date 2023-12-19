@@ -48,9 +48,9 @@ class WeatherResponseConverterTest {
 
         //then
         assertNotNull(weatherResponseConverted);
-        assertEquals(weatherResponseConverted.locations(), List.of(location1));
-        assertEquals(weatherResponseConverted.minTemp(), VALUE_FOR_CONDITIONS);
-        assertEquals(weatherResponseConverted.maxPrecip(), VALUE_FOR_CONDITIONS);
+        assertEquals(List.of(location1), weatherResponseConverted.locations());
+        assertEquals(VALUE_FOR_CONDITIONS, weatherResponseConverted.minTemp());
+        assertEquals(VALUE_FOR_CONDITIONS, weatherResponseConverted.maxPrecip());
         assertTrue(weatherResponseConverted.isWindy());
     }
 

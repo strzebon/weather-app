@@ -51,8 +51,6 @@ public class WeatherService {
                 }
             } catch (IOException e) {
                 throw new IOException();
-            } catch (NullPointerException ignored) {
-                return Optional.empty();
             }
         }
         if (responses.isEmpty()) {

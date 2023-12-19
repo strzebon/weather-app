@@ -68,19 +68,6 @@ class WeatherServiceTest {
     private static final String FORECAST = "forecast";
 
     @Test
-    void shouldReturnEmptyWhenNewCallIsNull() throws Exception {
-        //given
-        when(okHttpClient.newCall(any())).thenReturn(null);
-
-        //when
-        Optional<WeatherResponseConverted> response = service.findWeatherForecast(List.of(new WeatherRequest(1, 1)));
-
-        //then
-        assertTrue(response.isEmpty());
-
-    }
-
-    @Test
     void shouldThrowExceptionWhenProblemWithExecute() throws IOException {
         //given
         when(okHttpClient.newCall(any())).thenReturn(call);
