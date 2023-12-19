@@ -8,6 +8,7 @@ import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,7 +18,7 @@ import static pl.edu.agh.to2.example.converters.WeatherCalculator.checkWillItSno
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMaxPrecip;
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMaxWind;
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMinTemp;
-import static pl.edu.agh.to2.example.models.weather.Precipitation.prepareListOfPrecipitations;
+import static pl.edu.agh.to2.example.models.weather.Precipitation.*;
 import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.determineTemperatureLevel;
 
 public class WeatherResponseConverter {
@@ -66,5 +67,19 @@ public class WeatherResponseConverter {
 
     private static boolean determineIsWindy(double maxWind) {
         return maxWind > MIN_WINDY_VALUE;
+    }
+
+    private static List<Precipitation> prepareListOfPrecipitations(boolean willItRain, boolean willItSnow) {
+        List<Precipitation> precipitations = new ArrayList<>();
+        if (willItRain) {
+            precipitations.add(RAIN);
+        }
+        if (willItSnow) {
+            precipitations.add(SNOW);
+        }
+        if (precipitations.isEmpty()) {
+            precipitations.add(CLEAR);
+        }
+        return precipitations;
     }
 }
