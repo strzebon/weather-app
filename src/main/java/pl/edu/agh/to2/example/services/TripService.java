@@ -21,11 +21,15 @@ public class TripService {
         return tripRepository.findAll();
     }
 
-    public Optional<Trip> getTrip(int id) {
+    public Optional<Trip> getTrip(int id) throws IllegalArgumentException{
         return tripRepository.findById(id);
     }
 
     public Optional<Trip> getTrip(String name) {
         return tripRepository.findByName(name);
+    }
+
+    public void saveTrip(Trip trip) throws IllegalArgumentException{
+        tripRepository.save(trip);
     }
 }
