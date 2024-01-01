@@ -2,10 +2,10 @@ package pl.edu.agh.to2.example.converters;
 
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.Precipitation;
-import pl.edu.agh.to2.example.models.weather.TemperatureLevel;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
+import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted.WeatherResponseConvertedBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,7 +18,9 @@ import static pl.edu.agh.to2.example.converters.WeatherCalculator.checkWillItSno
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMaxPrecip;
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMaxWind;
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMinTemp;
-import static pl.edu.agh.to2.example.models.weather.Precipitation.*;
+import static pl.edu.agh.to2.example.models.weather.Precipitation.CLEAR;
+import static pl.edu.agh.to2.example.models.weather.Precipitation.RAIN;
+import static pl.edu.agh.to2.example.models.weather.Precipitation.SNOW;
 import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.determineTemperatureLevel;
 
 public class WeatherResponseConverter {
@@ -27,20 +29,24 @@ public class WeatherResponseConverter {
     public static WeatherResponseConverted convertWeatherResponse(List<WeatherForecastResponse> weatherForecastResponses)
             throws MissingDataException {
         List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(weatherForecastResponses);
-        List<String> locations = getLocations(weatherForecastResponses);
 
-        double minTemp = findMinTemp(weatherPerHours);
-        double maxPrecip = findMaxPrecip(weatherPerHours);
-        double maxWind = findMaxWind(weatherPerHours);
+        WeatherResponseConvertedBuilder responseBuilder = WeatherResponseConverted.builder();
+        responseBuilder.locations(getLocations(weatherForecastResponses));
+        responseBuilder.maxPrecip(findMaxPrecip(weatherPerHours));
+
         boolean willItRain = checkWillItRain(weatherPerHours);
         boolean willItSnow = checkWillItSnow(weatherPerHours);
+        responseBuilder.precipitation(prepareListOfPrecipitations(willItRain, willItSnow));
+
+        double maxWind = findMaxWind(weatherPerHours);
+        responseBuilder.isWindy(determineIsWindy(maxWind));
+        double minTemp = findMinTemp(weatherPerHours);
+        responseBuilder.minTemp(findMinTemp(weatherPerHours));
         double sensedTemp = calculateSensedTemp(minTemp, maxWind);
+        responseBuilder.sensedTemp(sensedTemp);
+        responseBuilder.temperatureLevel(determineTemperatureLevel(sensedTemp));
 
-        TemperatureLevel temperatureLevel = determineTemperatureLevel(sensedTemp);
-        boolean isWindy = determineIsWindy(maxWind);
-        List<Precipitation> precipitations = prepareListOfPrecipitations(willItRain, willItSnow);
-
-        return new WeatherResponseConverted(locations, temperatureLevel, isWindy, precipitations, minTemp, sensedTemp, maxPrecip);
+        return responseBuilder.build();
     }
 
     private static List<String> getLocations(List<WeatherForecastResponse> weatherForecastResponses) {
