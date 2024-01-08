@@ -31,7 +31,7 @@ public class TripController {
         try {
             savedTrip = tripService.saveTrip(trip);
         } catch (IllegalArgumentException exception) {
-            return new ResponseEntity<>(null, BAD_REQUEST);
+            return new ResponseEntity<>(BAD_REQUEST);
         }
         return new ResponseEntity<>(savedTrip, OK);
     }
@@ -61,6 +61,6 @@ public class TripController {
         } catch (IllegalArgumentException exception) {
             return new ResponseEntity<>(BAD_REQUEST);
         }
-        return  new ResponseEntity<>(OK);
+        return new ResponseEntity<>(OK);
     }
 }

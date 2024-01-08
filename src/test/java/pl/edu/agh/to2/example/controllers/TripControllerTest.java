@@ -99,4 +99,24 @@ class TripControllerTest {
         mvc.perform(MockMvcRequestBuilders.get("/trips")).andExpect(MockMvcResultMatchers.status().isOk());
     }
 
+    @SneakyThrows
+    @Test
+    void shouldReturnBadRequestWhenDeletingTripFails() {
+        //given
+        int id = 0;
+        doThrow(IllegalArgumentException.class).when(tripService).deleteTrip(id);
+
+        mvc.perform(MockMvcRequestBuilders.delete("/trips/{id}", id))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @SneakyThrows
+    @Test
+    void shouldReturnOKWhenSuccessfulDeletingTrip() {
+        //given
+        int id = 0;
+
+        mvc.perform(MockMvcRequestBuilders.delete("/trips/{id}", id))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
 }
