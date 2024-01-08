@@ -28,6 +28,15 @@ const TripService = {
       } catch (error) {
         throw new Error('Failed to post new Trip');
       }
+  },
+  
+  deleteTrip: async (id) => {
+    try {
+      const response = await axios.delete(`${enpointURL}/trips/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to delete Trip');
+    }
   }
 };
 

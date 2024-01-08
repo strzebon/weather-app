@@ -29,7 +29,12 @@ public class TripService {
         return tripRepository.findByName(name);
     }
 
-    public void saveTrip(Trip trip) throws IllegalArgumentException{
-        tripRepository.save(trip);
+    public Trip saveTrip(Trip trip) throws IllegalArgumentException{
+        return tripRepository.save(trip);
+    }
+
+    public void deleteTrip(int id) throws IllegalArgumentException {
+        Optional<Trip> trip = this.getTrip(id);
+        trip.ifPresent(tripRepository::delete);
     }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import TripService from "../services/TripService";
 import TripElement from "./TripElement";
+import "../styles/Trips.css"
 
 
 export default function Trips() {
@@ -8,11 +9,12 @@ export default function Trips() {
     const [tripsList, setTripsList] = useState([]);
     const [tripsFetched, setTripsFetched] = useState(false);
     
+    const [refreshComponent, setRefreshComponent] = useState(false);
 
     useEffect(() => {
         TripService.getTrips()
             .then(data => {
-                    setTripsList(data.trips);
+                    setTripsList(data);
                     setTripsFetched(true);
                 }
         ).catch(error => {
@@ -20,7 +22,11 @@ export default function Trips() {
             setTripsFetched(true);
         });
       }
-    ,[])
+    ,[refreshComponent])
+
+    const refreshParent = () => {
+        setRefreshComponent(!refreshComponent);
+    }
     
     if (!tripsFetched) {
         return (
@@ -29,15 +35,19 @@ export default function Trips() {
     }
     else if (tripsFetched && !tripsList.length) {
         return (
-        <div className="trips-container">
-            No saved trips has been found.
+        <div className="main-container">
+            <div className="trips-container">
+                No saved trips has been found.
+            </div>
         </div>
         )
     }
     else {
         return (
-            <div className="trips-container">
-                {tripsList.map(trip => <TripElement id={trip.id} key={trip.id} name={trip.name} />)}
+            <div className="main-container">
+                <div className="trips-container">
+                    {tripsList.map(trip => <TripElement id={trip.id} key={trip.id} name={trip.name} refreshParent={refreshParent}/>)}
+                </div>
             </div>
         )
     }

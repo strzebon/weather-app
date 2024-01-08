@@ -8,7 +8,6 @@ import TripService from "../services/TripService";
 export default function Form() {
 
     const handleInputChange = (coordinatesData, id) => {
-        console.log(coordinatesData);
         setData(prevData => prevData.map((item, index) => (index === id ? coordinatesData : item)));
     }
 
@@ -69,7 +68,7 @@ export default function Form() {
                     .catch(error => console.log(error));
             }
             else {
-                sessionStorage.setItem("lastTrip", data.map(element => element.coordinates));
+                sessionStorage.setItem("lastTrip", JSON.stringify(data.map(element => element.coordinates)));
                 WeatherService.getWeatherByCoordinates(data.map(element => element.coordinates))
                     .then(() => {
                         navigate("/weather");
@@ -80,21 +79,23 @@ export default function Form() {
     }
 
     return (
-        <form className="latlong-form">
-            <h1>Weather Form</h1>
-            {inputComponents}
-            <div>
-                <label htmlFor="save-checkbox">Save trip</label>
-                <input type="checkbox" name="save-checkbox" onChange={handleCheckboxClick}/>
-                <input disabled={!saveTrip} onChange={handleNameInputChange}/>
+        <div className="main-container">
+            <form className="latlong-form">
+                <h1>Weather Form</h1>
+                {inputComponents}
+                <div className="latlong-form-buttons">
+                    <button onClick={handleAddClick} className={`latlong-form-${inputCount === 5 ? "disabled" : "add"} material-symbols-outlined`}>add_circle</button>
+                    <button onClick={handleRemoveClick} className={`latlong-form-${inputCount === 1 ? "disabled" : "remove"} material-symbols-outlined`}>cancel</button>
+                </div>
+                <div className="latlong-save-trip-container">
+                    <label htmlFor="save-checkbox">Save trip</label>
+                    <input type="checkbox" name="save-checkbox" onChange={handleCheckboxClick} className="latlong-save-checkbox"/>
+                    <input disabled={!saveTrip} onChange={handleNameInputChange} className="latlong-save-input" placeholder="trip name..."/>
+                </div>
                 {saveTrip && tripName === "" && <p className="form-error">* Invalid trip name</p>}
-            </div>
-            <div className="latlong-form-buttons">
-                <button onClick={handleAddClick} className={`latlong-form-${inputCount === 5 ? "disabled" : "add"} material-symbols-outlined`}>add_circle</button>
-                <button onClick={handleRemoveClick} className={`latlong-form-${inputCount === 1 ? "disabled" : "remove"} material-symbols-outlined`}>cancel</button>
-            </div>
-            <button onClick={formWeatherRequest} className="latlong-form-submit">Get Weather ⛅</button>
-            {showSubmitError && <p className="form-error">* Invalid data in the form</p>}
-        </form>
+                <button onClick={formWeatherRequest} className="latlong-form-submit">Get Weather ⛅</button>
+                {showSubmitError && <p className="form-error">* Invalid data in the form</p>}
+            </form>
+        </div>
     )
 }

@@ -2,7 +2,10 @@ import "../styles/WeatherOverview.css"
 
 export default function WeatherOverview(props) {
     return (
+        <>
+        {props.tripName !== "" && <div className="trip-name">Trip Name: <h2>{props.tripName}</h2></div>}
     <div className="weather-overview-container">
+        
         <div className="thermometer-container">
             <div className="logo">
                 <div className={`bar ${props.classNames}-bar`}></div>
@@ -16,5 +19,6 @@ export default function WeatherOverview(props) {
             <h4 className="weather-condition">{props.condition}</h4>
         </div>
     </div>
+    </>
     )
 }

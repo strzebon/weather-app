@@ -3,13 +3,7 @@ package pl.edu.agh.to2.example.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pl.edu.agh.to2.example.models.trip.Trip;
 import pl.edu.agh.to2.example.services.TripService;
 
@@ -32,13 +26,14 @@ public class TripController {
     }
 
     @PostMapping("/trips")
-    public ResponseEntity<HttpStatus> saveNewTrip(@RequestBody Trip trip) {
+    public ResponseEntity<Trip> saveNewTrip(@RequestBody Trip trip) {
+        Trip savedTrip;
         try {
-            tripService.saveTrip(trip);
+            savedTrip = tripService.saveTrip(trip);
         } catch (IllegalArgumentException exception) {
-            return new ResponseEntity<>(BAD_REQUEST);
+            return new ResponseEntity<>(null, BAD_REQUEST);
         }
-        return new ResponseEntity<>(OK);
+        return new ResponseEntity<>(savedTrip, OK);
     }
 
     @GetMapping("/trips/{id}")
@@ -57,5 +52,15 @@ public class TripController {
     @GetMapping("/trips")
     public ResponseEntity<List<Trip>> getAllTrips() {
         return new ResponseEntity<>(tripService.getTrips(), OK);
+    }
+
+    @DeleteMapping("/trips/{id}")
+    public ResponseEntity<HttpStatus> deleteTripById(@PathVariable int id) {
+        try {
+            tripService.deleteTrip(id);
+        } catch (IllegalArgumentException exception) {
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
+        return  new ResponseEntity<>(OK);
     }
 }
