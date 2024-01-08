@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -51,12 +50,12 @@ public class TripController {
             return new ResponseEntity<>(BAD_REQUEST);
         }
         return trip
-                .map(foundTrip -> new ResponseEntity<>(foundTrip, FOUND))
+                .map(foundTrip -> new ResponseEntity<>(foundTrip, OK))
                 .orElse(new ResponseEntity<>(NOT_FOUND));
     }
 
     @GetMapping("/trips")
     public ResponseEntity<List<Trip>> getAllTrips() {
-        return new ResponseEntity<>(tripService.getTrips(), FOUND);
+        return new ResponseEntity<>(tripService.getTrips(), OK);
     }
 }
