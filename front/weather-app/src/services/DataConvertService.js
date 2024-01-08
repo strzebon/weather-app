@@ -29,6 +29,19 @@ const DataConvertService = {
     },
     getLocations: (locations) => {
         return locations.join(", ");
+    },
+    getWeatherInfo: (data) => {
+        let imgArray = DataConvertService.getPrecipitation(data.precipitation);
+        DataConvertService.getWind(data.isWindy, imgArray);
+        let classNames = DataConvertService.getTemperature(data.temperatureLevel);
+        let weatherData = {
+            img: imgArray,
+            classNames: classNames,
+            locations: DataConvertService.getLocations(data.locations),
+            tempC: Math.round(data.sensedTemp),
+            condition: data.temperatureLevel
+        };
+        return weatherData;
     }
 }
 

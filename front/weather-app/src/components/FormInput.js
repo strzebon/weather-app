@@ -9,8 +9,17 @@ export default function FormInput(props) {
     const [showErrorLongitude, setShowErrorLongitude] = useState(true);
 
     useEffect(() => {
-        setInputInfo();
-    }, [lattitude, longitude, showErrorLattitude, showErrorLongitude]);
+        props.handleChange(
+            {
+                coordinates: {
+                    lat: lattitude,
+                    lng: longitude
+                },
+                validData: !(showErrorLattitude || showErrorLongitude)
+            },
+            props.id
+        )
+    }, [lattitude, longitude, showErrorLattitude, showErrorLongitude, props]);
 
 
     const lattitudeValidation = (event) => {
@@ -39,19 +48,6 @@ export default function FormInput(props) {
         } else {
             setShowErrorLongitude(true);
         }
-    }
-
-    const setInputInfo = () => {
-        props.handleChange(
-            {
-                coordinates: {
-                    lat: lattitude,
-                    lng: longitude
-                },
-                validData: !(showErrorLattitude || showErrorLongitude)
-            },
-            props.id
-        )
     }
     
     return (
