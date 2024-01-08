@@ -8,7 +8,7 @@ import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.determineTe
 
 class TemperatureLevelTest {
     @ParameterizedTest
-    @CsvSource({"FREEZING, -15.0", "COLD, -2.0", "WARM, 12.0", "HOT, 23"})
+    @CsvSource({"FREEZING, -15.0", "COLD, -2.0", "CHILLY, 5", "WARM, 12.0", "HOT, 23"})
     void shouldReturnProperTemperatureLevelWhenUnderTheirLevel(TemperatureLevel expectedLevel, double temperature) {
         // when
         TemperatureLevel actualLevel = determineTemperatureLevel(temperature);
