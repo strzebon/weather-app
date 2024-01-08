@@ -3,6 +3,7 @@ import { useState } from "react"
 import WeatherService from "../services/WeatherService";
 import { useNavigate } from "react-router-dom";
 import FormInput from "./FormInput";
+import TripService from "../services/TripService";
 
 export default function Form() {
 
@@ -18,6 +19,9 @@ export default function Form() {
 
     const [showSubmitError, setShowSubmitError] = useState(false);
     const [timeoutId, setTimeoutId] = useState(undefined);
+
+    const [saveTrip, setSaveTrip] = useState(false);
+    const [tripName, setTripName] = useState("");
 
     const navigate = useNavigate();
 
@@ -40,8 +44,16 @@ export default function Form() {
         }
     }
 
+    const handleCheckboxClick = (event) => {
+        setSaveTrip(!saveTrip)
+    }
+
+    const handleNameInputChange = (event) => {
+        setTripName(event.target.value);
+    }
+
     const checkData = () => {
-        return data.find(element => element.validData === false);
+        return data.find(element => element.validData === false) || (saveTrip && tripName === "");
     }
 
     const formWeatherRequest = (event) => {
@@ -51,9 +63,19 @@ export default function Form() {
             setShowSubmitError(true);
             setTimeoutId(setTimeout(() => {setShowSubmitError(false)}, 3000))
         } else {
-            WeatherService.getWeatherByCoordinates(data.map(element => element.coordinates))
-                .then(() => {navigate("/weather")})
-                .catch(error => console.log(error));
+            if (saveTrip) {
+                TripService.addNewTrip({name: tripName, locations: data.map(element => element.coordinates)})
+                    .then((data) => {navigate(`/trips/${data.id}`)})
+                    .catch(error => console.log(error));
+            }
+            else {
+                sessionStorage.setItem("lastTrip", data.map(element => element.coordinates));
+                WeatherService.getWeatherByCoordinates(data.map(element => element.coordinates))
+                    .then(() => {
+                        navigate("/weather");
+                    })
+                    .catch(error => console.log(error));
+            }
         }
     }
 
@@ -61,6 +83,12 @@ export default function Form() {
         <form className="latlong-form">
             <h1>Weather Form</h1>
             {inputComponents}
+            <div>
+                <label htmlFor="save-checkbox">Save trip</label>
+                <input type="checkbox" name="save-checkbox" onChange={handleCheckboxClick}/>
+                <input disabled={!saveTrip} onChange={handleNameInputChange}/>
+                {saveTrip && tripName === "" && <p className="form-error">* Invalid trip name</p>}
+            </div>
             <div className="latlong-form-buttons">
                 <button onClick={handleAddClick} className={`latlong-form-${inputCount === 5 ? "disabled" : "add"} material-symbols-outlined`}>add_circle</button>
                 <button onClick={handleRemoveClick} className={`latlong-form-${inputCount === 1 ? "disabled" : "remove"} material-symbols-outlined`}>cancel</button>
