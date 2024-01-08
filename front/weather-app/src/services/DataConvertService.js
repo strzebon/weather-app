@@ -2,6 +2,7 @@ import rainLogo from "../images/rain.png"
 import sunLogo from "../images/sunny.png"
 import windLogo from "../images/wind.png"
 import snowLogo from "../images/snow.png"
+import mudLogo from "../images/mud.png"
 
 const DataConvertService = {
     getTemperature: (sensedTemp) => {
@@ -27,12 +28,18 @@ const DataConvertService = {
             imgArray.push(windLogo);
         }
     },
+    getMud: (mud, imgArray) => {
+        if (mud) {
+            imgArray.push(mudLogo)
+        }
+    },
     getLocations: (locations) => {
         return locations.join(", ");
     },
     getWeatherInfo: (data) => {
         let imgArray = DataConvertService.getPrecipitation(data.precipitation);
         DataConvertService.getWind(data.isWindy, imgArray);
+        DataConvertService.getMud(data.isMuddy, imgArray);
         let classNames = DataConvertService.getTemperature(data.temperatureLevel);
         let weatherData = {
             img: imgArray,
