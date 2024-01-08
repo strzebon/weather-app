@@ -1,0 +1,21 @@
+.latlong-form > label {
+    padding-top: 10px;
+}
+
+.latlong-form > input {
+    margin-top: 5px;
+    padding: 8px;
+    color: rgb(58, 57, 57);
+    font-weight: 300;
+}
+
+.latlong-form > h3 {
+    margin: 0;
+    border-top: 1px solid rgb(180, 169, 169);
+    padding-top: 10px;
+    font-weight: 600;
+}
+
+.latlong-form > input:nth-of-type(2n) {
+    margin-bottom: 15px;
+}

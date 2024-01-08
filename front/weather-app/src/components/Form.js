@@ -2,77 +2,70 @@ import "../styles/Form.css"
 import { useState } from "react"
 import WeatherService from "../services/WeatherService";
 import { useNavigate } from "react-router-dom";
+import FormInput from "./FormInput";
 
 export default function Form() {
-    const [showErrorLattitude, setShowErrorLattitude] = useState(false);
-    const [showErrorLongitude, setShowErrorLongitude] = useState(false);
+
+    const handleInputChange = (coordinatesData, id) => {
+        console.log(coordinatesData);
+        setData(prevData => prevData.map((item, index) => (index === id ? coordinatesData : item)));
+    }
+
+    const [inputComponents, setInputComponents] = useState([<FormInput key={0} id={0} handleChange={handleInputChange}/>]);
+
+    const [inputCount, setInputCount] = useState(1);
+    const [data, setData] = useState([{coordinates: {lat: "", lng: ""}, validData: false}])
 
     const [showSubmitError, setShowSubmitError] = useState(false);
-
-    const [lattitude, setLattitude] = useState("");
-    const [longitude, setLongitude] = useState("");
-
     const [timeoutId, setTimeoutId] = useState(undefined);
 
     const navigate = useNavigate();
 
-    const lattitudeValidation = (event) => {
-        let val = event.target.value;
-        setLattitude(val);
-        console.log(val);
-        if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
-            setShowErrorLattitude(true);
-            return;
-        }
-        let floatVal = parseFloat(val); 
-        if (floatVal < 90 && floatVal > -90) {
-            setShowErrorLattitude(false);
-        } else {
-            setShowErrorLattitude(true);
+
+    const handleAddClick = (event) => {
+        event.preventDefault()
+        if (inputCount < 5) {
+            setInputComponents(arr => [...arr, <FormInput key={inputCount} id={inputCount} handleChange={handleInputChange}/>])
+            setData(arr => [...arr, {coordinates: {lat: "", lng: ""}, validData: false}]);
+            setInputCount(inputCount => inputCount + 1);
         }
     }
 
-    const longitudeValidation = (event) => {
-        let val = event.target.value;
-        setLongitude(val);
-        if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
-            setShowErrorLongitude(true);
-            return;
-        }
-        let floatVal = parseFloat(val); 
-        if (floatVal < 180 && floatVal > -180) {
-            setShowErrorLongitude(false);
-        } else {
-            setShowErrorLongitude(true);
+    const handleRemoveClick = (event) => {
+        event.preventDefault()
+        if (inputCount > 1) {
+            setInputComponents(arr => arr.slice(0, -1));
+            setData(arr => arr.slice(0, -1));
+            setInputCount(inputCount => inputCount - 1)
         }
     }
 
-    const formWeatherRequest = async (event) => {
+    const checkData = () => {
+        return data.find(element => element.validData === false);
+    }
+
+    const formWeatherRequest = (event) => {
         event.preventDefault();
-        if (showErrorLattitude || showErrorLongitude || !longitude || !lattitude) {
+        if (checkData()) {
             clearTimeout(timeoutId);
             setShowSubmitError(true);
             setTimeoutId(setTimeout(() => {setShowSubmitError(false)}, 3000))
         } else {
-            try {
-                await WeatherService.getWeatherByCoordinates(lattitude, longitude);
-                navigate("/weather");
-            } catch (error) {
-                console.error(error.message);
-            }
+            WeatherService.getWeatherByCoordinates(data.map(element => element.coordinates))
+                .then(() => {navigate("/weather")})
+                .catch(error => console.log(error));
         }
     }
 
     return (
         <form className="latlong-form">
             <h1>Weather Form</h1>
-            <label htmlFor="lattitude">Lattitude</label>
-            <input onChange={lattitudeValidation} name="lattitude" type="text"></input>
-            {showErrorLattitude && <p className="form-error">* Lattitude must be between -90 and 90</p>}
-            <label htmlFor="longitude">Longitude</label>
-            <input onChange={longitudeValidation} name="longitude" type="text"></input>
-            {showErrorLongitude && <p className="form-error">* Longitude must be between -180 and 180</p>}
-            <button onClick={formWeatherRequest}>Get Weather ⛅</button>
+            {inputComponents}
+            <div className="latlong-form-buttons">
+                <button onClick={handleAddClick} className={`latlong-form-${inputCount === 5 ? "disabled" : "add"} material-symbols-outlined`}>add_circle</button>
+                <button onClick={handleRemoveClick} className={`latlong-form-${inputCount === 1 ? "disabled" : "remove"} material-symbols-outlined`}>cancel</button>
+            </div>
+            <button onClick={formWeatherRequest} className="latlong-form-submit">Get Weather ⛅</button>
             {showSubmitError && <p className="form-error">* Invalid data in the form</p>}
         </form>
     )

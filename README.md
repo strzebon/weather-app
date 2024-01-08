@@ -276,6 +276,15 @@ public record WeatherRequest(double lat, double lng) {
 Klasa zawierająca dwie liczby zmiennoprzecinkowe, będące koordynatami interesującej nas lokalizacji. Operujemy na niej
 w procesie zdobywania informacji o pogodzie
 
+#### WeatherMultiRequest
+```
+public record WeatherMultiRequest(
+        List<WeatherRequest> weatherRequests
+) {
+}
+```
+Klasa zawierająca listę obiektów klasy WeatherRequest wykorzystywana przy zapytaniach dotyczących wielu lokalizacji.
+
 #### WeatherResponse
 ```
 public record WeatherResponse(
@@ -289,26 +298,118 @@ public record WeatherResponse(
 ```
 Klasa zawierająca dane dotyczące lokalizacji oraz pogody. Służy do zwrócenia uzyskanych z API informacji.
 
+#### WeatherForecastResponse
+```
+public record WeatherForecastResponse(
+        String location,
+        List<WeatherPerHour> todayWeather,
+        List<WeatherPerHour> tomorrowWeather
+) {
+}
+```
+Klasa zawierająca lokalizację, pogodę na obecny dzień i pogodę na jutro.
+
+#### WeatherResponseConverted
+```
+public record WeatherResponseConverted(
+        List<String> locations,
+        TemperatureLevel temperatureLevel,
+        boolean isWindy,
+        List<Precipitation> precipitation,
+        double minTemp,
+        double sensedTemp,
+        double maxPrecip
+) {
+}
+```
+Klasa zawierająca dane pogodowe wykorzystywane przez frontend.
+
+#### Precipitation
+```
+public enum Precipitation {
+    SNOW,
+    RAIN,
+    NONE;
+
+    public static List<Precipitation> prepareListOfPrecipitations(boolean willItRain, boolean willItSnow) {
+        List<Precipitation> precipitations = new ArrayList<>();
+        if (willItRain) {
+            precipitations.add(RAIN);
+        }
+        if (willItSnow) {
+            precipitations.add(SNOW);
+        }
+        if (precipitations.isEmpty()) {
+            precipitations.add(NONE);
+        }
+        return precipitations;
+    }
+}
+```
+Klasa zawierająca wartości opisujące warunki dotyczące opadów atmosferycznych oraz metodę przygotowującą listę opadów.
+
+#### TemperatureLevel
+```
+public enum TemperatureLevel {
+    FREEZING,
+    COLD,
+    WARM,
+    HOT;
+
+    public static TemperatureLevel determineTemperatureLevel(double sensedTemp) {
+        if (sensedTemp < -5) {
+            return FREEZING;
+        }
+        if (sensedTemp < 5) {
+            return COLD;
+        }
+        if (sensedTemp < 20) {
+            return WARM;
+        }
+        return HOT;
+    }
+}
+```
+Klasa zawierająca wartości opisujące warunki dotyczące poziomu temperatury oraz metodę determinującą poziom dla warunków pogodowych.
+
+#### WeatherPerHour
+```
+public record WeatherPerHour(
+        String time,
+        double temp_c,
+        double precip_mm,
+        double wind_kph,
+        int will_it_rain,
+        int will_it_snow
+) {
+}
+```
+Klasa zawierająca dane dotyczące warunków pogodowych występujących w danej godzinie.
+
 ### Serwisy
 #### WeatherService
 ```
 @Service
 public class WeatherService {
-    private static final String URL = "http://api.weatherapi.com/v1/current.json";
+
+    private static final String URL_CURRENT = "http://api.weatherapi.com/v1/current.json";
+    private static final String URL_FORECAST = "http://api.weatherapi.com/v1/forecast.json";
     private static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String LOCATION = "location";
     private static final String CURRENT = "current";
     private static final String CONDITION = "condition";
     private final OkHttpClient client;
+    private final Gson gson;
 
     @Autowired
-    public WeatherService(OkHttpClient client) {
+    public WeatherService(OkHttpClient client, Gson gson) {
         this.client = client;
+        this.gson = gson;
     }
 
     public Optional<WeatherResponse> findWeather(WeatherRequest weatherRequest) throws IOException {
         String params = weatherRequest.lat() + "," + weatherRequest.lng();
-        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL)).newBuilder()
+        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_CURRENT)).newBuilder()
                 .addQueryParameter("key", API_KEY)
                 .addQueryParameter("q", params);
         Request request = new Request.Builder()
@@ -334,6 +435,49 @@ public class WeatherService {
         }
         return Optional.empty();
     }
+
+    public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
+        List<WeatherForecastResponse> responses = new ArrayList<>();
+        for (WeatherRequest weatherRequest : weatherRequests) {
+            String params = weatherRequest.lat() + "," + weatherRequest.lng();
+            HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
+                    .addQueryParameter("key", API_KEY)
+                    .addQueryParameter("q", params)
+                    .addQueryParameter("days", "2");
+            Request request = new Request.Builder()
+                    .url(builder.build())
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
+                    String location = json.getAsJsonObject(LOCATION).get("name").getAsString();
+
+                    JsonArray weathers = json.getAsJsonObject("forecast").getAsJsonArray("forecastday");
+
+                    JsonArray todayWeatherJson = weathers.get(0).getAsJsonObject().getAsJsonArray("hour");
+                    List<WeatherPerHour> todayWeather = List.of(gson.fromJson(todayWeatherJson, WeatherPerHour[].class));
+
+                    JsonArray tomorrowWeatherJson = weathers.get(1).getAsJsonObject().getAsJsonArray("hour");
+                    List<WeatherPerHour> tomorrowWeather = List.of(gson.fromJson(tomorrowWeatherJson, WeatherPerHour[].class));
+
+                    responses.add(new WeatherForecastResponse(location, todayWeather, tomorrowWeather));
+                }
+            } catch (IOException e) {
+                throw new IOException();
+            } catch (NullPointerException ignored) {
+                return Optional.empty();
+            }
+        }
+        if (responses.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses));
+        } catch (MissingDataException e) {
+            return Optional.empty();
+        }
+    }
 }
 ```
 Klasa serwis, jej zadaniem jest połączenie się z API, wysłanie zapytania oraz przetworzenie informacji zwrotnej.
@@ -351,6 +495,121 @@ public class WeatherConfigurator {
 }
 ```
 Klasa odpowiedzialna za skonstruowanie obiektu OkHttpClient, wstrzykiwanego do serwisu.
+
+### Konwertery
+#### WeatherResponseConverter
+```
+public class WeatherResponseConverter {
+    private static final double MIN_WINDY_VALUE = 5;
+
+    public static WeatherResponseConverted convertWeatherResponse(List<WeatherForecastResponse> weatherForecastResponses)
+            throws MissingDataException {
+        List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(weatherForecastResponses);
+        List<String> locations = getLocations(weatherForecastResponses);
+
+        double minTemp = findMinTemp(weatherPerHours);
+        double maxPrecip = findMaxPrecip(weatherPerHours);
+        double maxWind = findMaxWind(weatherPerHours);
+        boolean willItRain = checkWillItRain(weatherPerHours);
+        boolean willItSnow = checkWillItSnow(weatherPerHours);
+        double sensedTemp = calculateSensedTemp(minTemp, maxWind);
+
+        TemperatureLevel temperatureLevel = determineTemperatureLevel(sensedTemp);
+        boolean isWindy = determineIsWindy(maxWind);
+        List<Precipitation> precipitations = prepareListOfPrecipitations(willItRain, willItSnow);
+
+        return new WeatherResponseConverted(locations, temperatureLevel, isWindy, precipitations, minTemp, sensedTemp, maxPrecip);
+    }
+
+    private static List<String> getLocations(List<WeatherForecastResponse> weatherForecastResponses) {
+        return weatherForecastResponses.stream()
+                .map(WeatherForecastResponse::location)
+                .toList();
+    }
+
+    private static List<WeatherPerHour> prepareDataToAnalysis(List<WeatherForecastResponse> weatherForecastResponses) {
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime latestTimeForToday = LocalDateTime.of(currentTime.getYear(), currentTime.getMonth(),
+                currentTime.getDayOfMonth(), 6, 0);
+        if (currentTime.isAfter(latestTimeForToday)) {
+            return weatherForecastResponses.stream()
+                    .map(WeatherForecastResponse::tomorrowWeather)
+                    .flatMap(Collection::stream)
+                    .toList();
+        }
+        return weatherForecastResponses.stream()
+                .map(WeatherForecastResponse::todayWeather)
+                .flatMap(Collection::stream)
+                .toList();
+    }
+
+    private static boolean determineIsWindy(double maxWind) {
+        return maxWind > MIN_WINDY_VALUE;
+    }
+}
+```
+Klasa odpowiedzialna za przetworzenie otrzymanych z serwisu danych do formy wyświetlanej na frontendzie.
+
+#### WeatherCalculator
+```
+class WeatherCalculator {
+    private static final String TEMP_EXCEPTION_MESSAGE = "Data about temperature not found";
+    private static final String PRECIP_EXCEPTION_MESSAGE = "Data about precipitation not found";
+    private static final String WIND_EXCEPTION_MESSAGE = "Data about wind not found";
+    private static final int FLAG_TRUE = 1;
+
+    static double findMinTemp(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
+        OptionalDouble minTemp = weatherPerHours.stream()
+                .mapToDouble(WeatherPerHour::temp_c)
+                .min();
+        if (minTemp.isEmpty()) {
+            throw new MissingDataException(TEMP_EXCEPTION_MESSAGE);
+        }
+        return minTemp.getAsDouble();
+    }
+
+    static double findMaxPrecip(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
+        OptionalDouble maxPrecip = weatherPerHours.stream()
+                .mapToDouble(WeatherPerHour::precip_mm)
+                .max();
+        if (maxPrecip.isEmpty()) {
+            throw new MissingDataException(PRECIP_EXCEPTION_MESSAGE);
+        }
+        return maxPrecip.getAsDouble();
+    }
+
+    static double findMaxWind(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
+        OptionalDouble maxWind = weatherPerHours.stream()
+                .mapToDouble(WeatherPerHour::wind_kph)
+                .max();
+        if (maxWind.isEmpty()) {
+            throw new MissingDataException(WIND_EXCEPTION_MESSAGE);
+        }
+        return maxWind.getAsDouble();
+    }
+
+    static boolean checkWillItRain(List<WeatherPerHour> weatherPerHours) {
+        Optional<Integer> willItRain = weatherPerHours.stream()
+                .map(WeatherPerHour::will_it_rain)
+                .filter(rain -> rain == FLAG_TRUE)
+                .findAny();
+        return willItRain.isPresent();
+    }
+
+    static boolean checkWillItSnow(List<WeatherPerHour> weatherPerHours) {
+        Optional<Integer> willItSnow = weatherPerHours.stream()
+                .map(WeatherPerHour::will_it_snow)
+                .filter(snow -> snow == FLAG_TRUE)
+                .findAny();
+        return willItSnow.isPresent();
+    }
+
+    static double calculateSensedTemp(double temp, double wind) {
+        return 33 + (0.478 + 0.237 * sqrt(wind) - 0.0124 * wind) * (temp - 33);
+    }
+}
+```
+Klasa wykonująca operacje wykorzystywane w klasie WeatherResponseConverter.
 
 ### Klasy pomocnicze
 #### ResponseHolder

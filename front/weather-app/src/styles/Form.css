@@ -4,22 +4,48 @@
     padding: 20px;
     margin-top: 80px;
     border: 1px solid black;
+    border-radius: 5px;
     box-shadow: 8px 8px 24px 0px rgb(118, 120, 139);
     width: 330px;
 }
 
-.latlong-form > label {
-    padding-top: 10px;
+.latlong-form-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
 }
 
-.latlong-form > input {
-    margin-top: 5px;
-    padding: 8px;
-    color: rgb(58, 57, 57);
-    font-weight: 300;
+.latlong-form-buttons > button {
+    border-radius: 50%;
+    border: none;
+    padding: 5px;
+    color: white;
+    font-size: 30px;
 }
 
-.latlong-form > button {
+.latlong-form-add {
+    background-color: rgb(90, 201, 90);
+}
+
+.latlong-form-remove {
+    background-color: rgb(197, 34, 34);
+}
+
+.latlong-form-add:hover {
+    background-color: rgb(25, 116, 25);
+    color: aliceblue;
+}
+
+.latlong-form-remove:hover {
+    background-color: rgb(134, 29, 29);
+    color: aliceblue;
+}
+
+.latlong-form-disabled {
+    background-color: gray;
+}
+
+.latlong-form-submit {
     margin-top: 25px;
     padding: 8px 0px 8px;
     border: 0;
@@ -30,7 +56,7 @@
     font-weight: 500;
 }
 
-.latlong-form > button:hover {
+.latlong-form-submit:hover {
     background-color: #01a58a;
 }
 
@@ -43,4 +69,13 @@
     color: red;
     font-size: 14px;
     margin: 7px 0px 0px;
+}
+
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
 }
