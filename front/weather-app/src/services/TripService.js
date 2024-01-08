@@ -5,11 +5,11 @@ const enpointURL = 'http://127.0.0.1:8080';
 const TripService = {
   getTrips: async () => {
     try {
-        const response = await axios.get(`${enpointURL}/trips`);
-        return response.data;
-      } catch (error) {
-        throw new Error("Failed to fetch trip of id:");
-      }
+      const response = await axios.get(`${enpointURL}/trips`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to fetch trip of id:');
+    }
   },
 
   getTripById: async (id) => {
@@ -23,13 +23,13 @@ const TripService = {
 
   addNewTrip: async (trip) => {
     try {
-        const response = await axios.post(`${enpointURL}/trips`, trip);
-        return response.data;
-      } catch (error) {
-        throw new Error('Failed to post new Trip');
-      }
+      const response = await axios.post(`${enpointURL}/trips`, trip);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to post new Trip');
+    }
   },
-  
+
   deleteTrip: async (id) => {
     try {
       const response = await axios.delete(`${enpointURL}/trips/${id}`);
@@ -37,7 +37,7 @@ const TripService = {
     } catch (error) {
       throw new Error('Failed to delete Trip');
     }
-  }
+  },
 };
 
 export default TripService;
