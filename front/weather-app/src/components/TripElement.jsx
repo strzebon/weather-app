@@ -1,9 +1,10 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import TripService from '../services/TripService';
 import '../styles/TripElement.css';
 
-export default function TripElement({ id, name, refreshParent }) {
+function TripElement({ id, name, refreshParent }) {
   const navigate = useNavigate();
 
   const handleShowButtonClick = () => {
@@ -28,3 +29,11 @@ export default function TripElement({ id, name, refreshParent }) {
     </div>
   );
 }
+
+TripElement.propTypes = {
+  id: PropTypes.number.isRequired,
+  name: PropTypes.string.isRequired,
+  refreshParent: PropTypes.func.isRequired,
+};
+
+export default TripElement;

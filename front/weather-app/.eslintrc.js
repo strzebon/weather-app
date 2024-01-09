@@ -4,7 +4,7 @@ module.exports = {
     es2021: true,
     'jest/globals': true,
   },
-  extends: ['airbnb', 'plugin:jest/all'],
+  extends: ['airbnb', 'plugin:jest/all', 'eslint:recommended', 'plugin:react/recommended'],
   overrides: [
     {
       env: {
@@ -23,7 +23,6 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    'react/prop-types': 0,
     'no-console': 'off',
     'jest/no-hooks': [
       'error',
@@ -34,8 +33,10 @@ module.exports = {
         ],
       },
     ],
+    'react/jsx-filename-extension': [1, { extensions: ['.jsx'] }],
   },
   plugins: [
     'jest',
+    'react',
   ],
 };
