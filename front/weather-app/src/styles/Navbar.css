@@ -15,10 +15,16 @@
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
+    background-color: transparent;
+    border: none;
+    color: white;
 }
 
 .right-nav {
     margin-top: 20px;
+    background-color: transparent;
+    border: none;
+    color: white;
 }
 
 .nav-icon {

@@ -24,7 +24,7 @@ function FormInput({ handleChange, id }) {
   const lattitudeValidation = (event) => {
     const val = event.target.value;
     setLattitude(val);
-    if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
+    if (/^\[+-]?(\d+([.]\d*)?|[.]\d+)$/.test(val)) {
       setShowErrorLattitude(true);
     }
     const floatVal = parseFloat(val);
@@ -38,7 +38,7 @@ function FormInput({ handleChange, id }) {
   const longitudeValidation = (event) => {
     const val = event.target.value;
     setLongitude(val);
-    if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
+    if (/^\[+-]?(\d+([.]\d*)?|[.]\d+)$/.test(val)) {
       setShowErrorLongitude(true);
     }
     const floatVal = parseFloat(val);
