@@ -81,37 +81,145 @@ Do interfejsu graficznego oraz
 #### Form
 Kod JSX zwracany przez komponent
 ```
-<form className="latlong-form">
+<div className="main-container">
+    <form className="latlong-form">
     <h1>Weather Form</h1>
-    <label htmlFor="lattitude">Lattitude</label>
-    <input onChange={lattitudeValidation} name="lattitude" type="text"></input>
-    {showErrorLattitude && <p className="form-error">* Lattitude must be between -90 and 90</p>}
-    <label htmlFor="longitude">Longitude</label>
-    <input onChange={longitudeValidation} name="longitude" type="text"></input>
-    {showErrorLongitude && <p className="form-error">* Longitude must be between -180 and 180</p>}
-    <button onClick={formWeatherRequest}>Get Weather ⛅</button>
+    {inputComponents}
+    <div className="latlong-form-buttons">
+        <button type="submit" onClick={handleAddClick} className={`latlong-form-${inputCount === 5 ? 'disabled' : 'add'} material-symbols-outlined`}>add_circle</button>
+        <button type="submit" onClick={handleRemoveClick} className={`latlong-form-${inputCount === 1 ? 'disabled' : 'remove'} material-symbols-outlined`}>cancel</button>
+    </div>
+    <div className="latlong-save-trip-container">
+        <label htmlFor="save-checkbox">
+        Save trip
+        <input type="checkbox" id="save-checkbox" onChange={handleCheckboxClick} className="latlong-save-checkbox" />
+        </label>
+        <input disabled={!saveTrip} onChange={handleNameInputChange} className="latlong-save-input" placeholder="trip name..." />
+    </div>
+    {saveTrip && tripName === '' && <p className="form-error">* Invalid trip name</p>}
+    <button type="submit" onClick={formWeatherRequest} className="latlong-form-submit">Get Weather ⛅</button>
     {showSubmitError && <p className="form-error">* Invalid data in the form</p>}
-</form>
+    </form>
+</div>
 ```
-Komponent posiada dwa inputy, które przy wpisywaniu wartości walidują dane przy pomocy funkcji *longitudeValidation* oraz *lattitudeValidation*. Funkcje te działają analogicznie dla obu inputów
+Komponent 2 przyciski do dodawania i usuwania pól formularza, zawiera również input i checkbox do opcjonalnego zapisywania wycieczki do ulubionych wycieczek. Po kliknięciu przycisku przekierowuje nas do widoku pogody w danym miejscu (do ścieżki "/trips/:id" lub "/weather" w zależności od tego czy chcieliśmy zapisać wycieczkę).
 ```
+const handleAddClick = (event) => {
+    event.preventDefault();
+    if (inputCount < 5) {
+      setInputComponents([...inputComponents,
+        <FormInput key={inputCount} id={inputCount} handleChange={handleInputChange} />]);
+      setData((arr) => [...arr, { coordinates: { lat: '', lng: '' }, validData: false }]);
+      setInputCount(inputCount + 1);
+    }
+  };
+
+  const handleRemoveClick = (event) => {
+    event.preventDefault();
+    if (inputCount > 1) {
+      setInputComponents((arr) => arr.slice(0, -1));
+      setData((arr) => arr.slice(0, -1));
+      setInputCount(inputCount - 1);
+    }
+  };
+
+  const handleCheckboxClick = () => {
+    setSaveTrip(!saveTrip);
+  };
+
+  const handleNameInputChange = (event) => {
+    setTripName(event.target.value);
+  };
+
+  const checkData = () => data.find((element) => element.validData === false) || (saveTrip && tripName === '');
+
+  const formWeatherRequest = (event) => {
+    event.preventDefault();
+    if (checkData()) {
+      clearTimeout(timeoutId);
+      setShowSubmitError(true);
+      setTimeoutId(setTimeout(() => { setShowSubmitError(false); }, 3000));
+    } else if (saveTrip) {
+      TripService.addNewTrip(
+        { name: tripName, locations: data.map((element) => element.coordinates) },
+      )
+        .then((responseData) => { navigate(`/trips/${responseData.id}`); })
+        .catch((error) => console.log(error));
+    } else {
+      sessionStorage.setItem('lastTrip', JSON.stringify(data.map((element) => element.coordinates)));
+      WeatherService.getWeatherByCoordinates(data.map((element) => element.coordinates))
+        .then(() => {
+          navigate('/weather');
+        })
+        .catch((error) => console.log(error));
+    }
+  };
+```
+Funkcje do obsługiwania zmiany inputów oraz obsługi przycisków. *formWeatherRequest* służy do wysyłania do backendu naszego zapytania. Sprawdza też ona czy końcowe dane są poprawne. Funkcje *handleAddClick* oraz *handleRemoveClick* dodają/usuwają kolejne pola formularza.
+#### FormInput
+Kod JSX zwracany przez komponent
+```
+<>
+    <h3>
+    Location #
+    {id + 1}
+    </h3>
+    <label htmlFor="lattitude">
+    Lattitude
+    <input onChange={lattitudeValidation} name="lattitude" id="lattitude" type="text" className="latlong-form-input" />
+    </label>
+    {showErrorLattitude && lattitude !== '' && <p className="form-error">* Lattitude must be between -90 and 90</p>}
+    <label htmlFor="longitude">
+    Longitude
+    <input onChange={longitudeValidation} name="longitude" id="longitude" type="text" className="latlong-form-input" />
+    </label>
+    {showErrorLongitude && longitude !== '' && <p className="form-error">* Longitude must be between -180 and 180</p>}
+</>
+```
+Komponent zawiera dwa pola input, które są walidowane przez odpowiednie funkcje, które pokazują, jeżeli wpiszemy błędne dane do formularza
+```
+useEffect(() => {
+handleChange(
+    {
+    coordinates: {
+        lat: lattitude,
+        lng: longitude,
+    },
+    validData: !(showErrorLattitude || showErrorLongitude),
+    },
+    id,
+    );
+}, [lattitude, longitude, showErrorLattitude, showErrorLongitude]);
+
 const lattitudeValidation = (event) => {
-    let val = event.target.value;
+    const val = event.target.value;
     setLattitude(val);
-    console.log(val);
     if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
         setShowErrorLattitude(true);
-        return;
     }
-    let floatVal = parseFloat(val); 
+    const floatVal = parseFloat(val);
     if (floatVal < 90 && floatVal > -90) {
         setShowErrorLattitude(false);
     } else {
         setShowErrorLattitude(true);
     }
-}
+};
+
+const longitudeValidation = (event) => {
+    const val = event.target.value;
+    setLongitude(val);
+    if (/^\[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$/.test(val)) {
+        setShowErrorLongitude(true);
+    }
+    const floatVal = parseFloat(val);
+    if (floatVal < 180 && floatVal > -180) {
+        setShowErrorLongitude(false);
+    } else {
+        setShowErrorLongitude(true);
+    }
+};
 ```
-Komponent posiada też guzik, który przy kliknięciu wykonuje funkcję *formWeatherRequest*
+Funkcje *longitudeValidation* oraz *lattitudeValidation* służą do walidacji danych, a w Hooku *useEffect* jest obsługa aktualizowania danych w parent component jakim jest *Form*
 ```
 const formWeatherRequest = async (event) => {
     event.preventDefault();
@@ -133,62 +241,249 @@ Funkcja ta sprawdza, czy wartości podane przez użytkownika są poprawne, a nas
 #### WeatherView
 ```
 export default function WeatherView() {
-    
-    const [weatherInfo, setWeatherInfo] = useState(null);
+  const [weatherInfo, setWeatherInfo] = useState(null);
+  const [weatherTripName, setWeatherTripName] = useState('');
+  const [savedTrip, setSavedTrip] = useState(false);
 
-    useEffect(() => {
+  const [tripName, setTripName] = useState('');
+  const [tripNameError, setTripNameError] = useState(false);
+
+  const location = useLocation();
+  const { id } = useParams();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
     const fetchData = async () => {
-    try {
-        const currentWeather = await WeatherService.getCurrentWeather();
-        setWeatherInfo(currentWeather)
+      try {
+        if (location.pathname.includes('trips')) {
+          TripService.getTripById(id)
+            .then((data) => {
+              setWeatherTripName(data.name);
+              setSavedTrip(true);
+              WeatherService.getWeatherByCoordinates(data.locations)
+                .then((weatherData) => {
+                  setWeatherInfo(DataConvertService.getWeatherInfo(weatherData));
+                }).catch((error) => console.error(error.message));
+            }).catch((error) => console.error(error.message));
+        } else {
+          WeatherService.getCurrentWeather()
+            .then((data) => {
+              setWeatherInfo(DataConvertService.getWeatherInfo(data));
+            }).catch((error) => console.error(error.message));
+        }
       } catch (error) {
         console.error(error.message);
       }
     };
     fetchData();
-        }, [])
+  }, [location, id]);
 
-    if (!weatherInfo) {
-        return null
+  const handleNameChange = (event) => {
+    setTripName(event.target.value);
+    setTripNameError(false);
+  };
+
+  const handleSaveButton = () => {
+    if (tripName === '') {
+      setTripNameError(true);
+    } else {
+      TripService.addNewTrip({ locations: JSON.parse(sessionStorage.lastTrip), name: tripName })
+        .then((data) => { navigate(`/trips/${data.id}`); })
+        .catch((error) => console.error(error.message));
     }
-    
-    return (
-        <div className="weather-container">
-            <WeatherOverview {...weatherInfo}/>
-        </div>
-    )
+  };
+
+  const handleDeleteButton = () => {
+    TripService.deleteTrip(id)
+      .then(() => navigate('/trips'))
+      .catch((error) => console.error(error));
+  };
+
+  if (!weatherInfo) {
+    return null;
+  }
+
+  return (
+    <div className="main-container">
+      <div className="weather-container">
+        {weatherInfo && (
+        <WeatherOverview
+          classNames={weatherInfo.classNames}
+          img={weatherInfo.img}
+          tempC={weatherInfo.tempC}
+          condition={weatherInfo.condition}
+          locations={weatherInfo.locations}
+          tripName={weatherTripName}
+        />
+        )}
+        {!savedTrip
+                && (
+                <div className="save-trip-input">
+                  <label htmlFor="trip-name">
+                    Trip name:
+                    <input id="trip-name" name="trip-name" onChange={handleNameChange} />
+                  </label>
+                  <button type="submit" onClick={handleSaveButton}>Save</button>
+                </div>
+                )}
+        {savedTrip
+                && <button type="submit" className="delete-button" onClick={handleDeleteButton}>Delete</button>}
+        {tripNameError && <p className="form-error">* Invalid trip name</p>}
+      </div>
+    </div>
+  );
 }
+
 ```
-Komponent pobiera dane z serwisu i przekazuje je do komponentu *WeatherOverview*
+Komponent pobiera dane z serwisu i przekazuje je do komponentu *WeatherOverview*. W zależności od tego czy jest to zapisana wycieczka czy nie to odnosi się do innego endpointu na backendzie.
 #### WeatherOverview
 ```
-export default function WeatherOverview(props) {
-    return (
-    <div className="weather-overview-container">
-        <h2 className="weather-city-name">{props.location}</h2>
-        <img className="weather-img-present" src={require(`../images/${props.img_path}`)} alt={props.condition}/>
-        <h3 className="weather-temperature">{props.temp_c}&#176;C</h3>
-        <h4 className="weather-condition">{props.condition}</h4>
-    </div>
-    )
+export default function WeatherOverview({
+  tripName, classNames, img, tempC, condition, locations,
+}) {
+  return (
+    <>
+      {tripName !== '' && (
+        <div className="trip-name">
+          Trip Name:
+          {' '}
+          <h2>{tripName}</h2>
+        </div>
+      )}
+      <div className="weather-overview-container">
+
+        <div className="thermometer-container">
+          <div className="logo">
+            <div className={`bar ${classNames}-bar`} />
+            <div className={`circle ${classNames}-circle`} />
+          </div>
+        </div>
+        <div className="information-container">
+          <h2 className="weather-city-name">{locations}</h2>
+          <span className="weather-img-container">
+            {img.map((weatherImg) => <img src={weatherImg} alt="conditions" className="weather-img-present" />)}
+          </span>
+          <h3 className="weather-temperature">
+            {tempC}
+            &#176;C
+          </h3>
+          <h4 className="weather-condition">{condition}</h4>
+        </div>
+      </div>
+    </>
+  );
 }
 ```
 Komponent przyjmuje od *WeatherView* poprzez *props* dane na temat pogody i lokalizacji pobrane wcześniej z serwisu. Komponent zajmuje się wyświetlaniem tych danych
+#### Navbar
+```
+export default function Navbar() {
+  const navigate = useNavigate();
+
+  return (
+    <nav className="nav-container">
+      <div className="left-nav" role="button" onClick={() => navigate('/')} onKeyDown={() => navigate('/')} tabIndex={0}>
+        <img src={logo} alt="Sun behind the clouds in a circle" className="nav-icon" />
+        <h2 className="nav-title">WeatherApp</h2>
+      </div>
+      <div role="button" className="right-nav" onClick={() => navigate('/trips')} onKeyDown={() => navigate('/trips')} tabIndex={0}>
+        <h3>My Trips</h3>
+      </div>
+    </nav>
+  );
+}
+```
+Komponent pozwala na przekierowanie do *My Trips* (do widoku zapisanych wycieczek) lub do głównego formularza (klikając na logo aplikacji)
+#### Trips
+```
+export default function Trips() {
+  const [tripsList, setTripsList] = useState([]);
+  const [tripsFetched, setTripsFetched] = useState(false);
+
+  const [refreshComponent, setRefreshComponent] = useState(false);
+
+  useEffect(
+    () => {
+      TripService.getTrips()
+        .then((data) => {
+          setTripsList(data);
+          setTripsFetched(true);
+        }).catch(() => {
+          setTripsFetched(true);
+        });
+    },
+    [refreshComponent],
+  );
+
+  const refreshParent = () => {
+    setRefreshComponent(!refreshComponent);
+  };
+
+  if (!tripsFetched) {
+    return null;
+  }
+  if (tripsFetched && !tripsList.length) {
+    return (
+      <div className="main-container">
+        <div className="trips-container">
+          No saved trips has been found.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="main-container">
+      <div className="trips-container">
+        {tripsList.map((trip) => (
+          <TripElement
+            id={trip.id}
+            key={trip.id}
+            name={trip.name}
+            refreshParent={refreshParent}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+Komponent pobiera za pomocą *TripService* zapisane wycieczki i wyświetla je w postaci komponentów *TripElement*
+#### TripElement
+```
+export default function TripElement({ id, name, refreshParent }) {
+  const navigate = useNavigate();
+
+  const handleShowButtonClick = () => {
+    navigate(`/trips/${id}`);
+  };
+
+  const handleDeleteButtonClick = () => {
+    TripService.deleteTrip(id)
+      .then(() => refreshParent())
+      .catch((error) => console.error(error));
+  };
+
+  return (
+    <div className="trip-container-element">
+      <h3>{name}</h3>
+      <div className="trip-container-buttons">
+        <button type="submit" className="trip-container-element-delete" onClick={handleDeleteButtonClick}>Delete</button>
+        <button type="submit" className="trip-container-element-show" onClick={handleShowButtonClick}>Show</button>
+      </div>
+    </div>
+  );
+}
+```
+Komponent pozwalający na przejście do wycieczki o podanej nazwie lub jej usunięcie z zapisanych wycieczek.
 ### Serwisy
 #### WeatherService
 ```
-import axios from 'axios';
-
-const enpointURL = 'http://127.0.0.1:8080';
-
 const WeatherService = {
-  getWeatherByCoordinates: async (lattitude, longitude) => {
+  getWeatherByCoordinates: async (coordinates) => {
     try {
-      const response = await axios.post(`${enpointURL}/weather`, {
-          lat: lattitude,
-          lng: longitude,
-        }
-      );
+      const response = await axios.post(`${enpointURL}/weather`, coordinates);
       return response.data;
     } catch (error) {
       throw new Error('Failed to fetch weather data by coordinates');
@@ -204,10 +499,95 @@ const WeatherService = {
     }
   },
 };
-
-export default WeatherService;
 ```
 Serwis służący do komunikacji z backendem. funkcja *getWeatherByCoordinates* wysyła koordynaty pobrane od użytkownika, korzystając z endpointa */weather*, natomiast funkcja getCurrentWeather pobiera informacje korzystając z endpointa */weather/current* i je zwraca
+#### TripService
+```
+const TripService = {
+  getTrips: async () => {
+    try {
+      const response = await axios.get(`${enpointURL}/trips`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to fetch trip of id:');
+    }
+  },
+
+  getTripById: async (id) => {
+    try {
+      const response = await axios.get(`${enpointURL}/trips/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch trip of id: ${id}`);
+    }
+  },
+
+  addNewTrip: async (trip) => {
+    try {
+      const response = await axios.post(`${enpointURL}/trips`, trip);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to post new Trip');
+    }
+  },
+
+  deleteTrip: async (id) => {
+    try {
+      const response = await axios.delete(`${enpointURL}/trips/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to delete Trip');
+    }
+  },
+};
+```
+Serwis do obsługiwania operacji CRUD (bez Update) na zapisanych wycieczkach.
+#### DataConvertService
+```
+const DataConvertService = {
+  getTemperature: (sensedTemp) => sensedTemp.toLowerCase(),
+  getPrecipitation: (precipitation) => {
+    const imgArray = [];
+    precipitation.forEach((element) => {
+      if (element === 'RAIN') {
+        imgArray.push(rainLogo);
+      } else if (element === 'SNOW') {
+        imgArray.push(snowLogo);
+      }
+    });
+    if (imgArray.length === 0) {
+      imgArray.push(sunLogo);
+    }
+    return imgArray;
+  },
+  getWind: (wind, imgArray) => {
+    if (wind) {
+      imgArray.push(windLogo);
+    }
+  },
+  getMud: (mud, imgArray) => {
+    if (mud) {
+      imgArray.push(mudLogo);
+    }
+  },
+  getLocations: (locations) => locations.join(', '),
+  getWeatherInfo: (data) => {
+    const imgArray = DataConvertService.getPrecipitation(data.precipitation);
+    DataConvertService.getWind(data.isWindy, imgArray);
+    DataConvertService.getMud(data.isMuddy, imgArray);
+    const classNames = DataConvertService.getTemperature(data.temperatureLevel);
+    const weatherData = {
+      img: imgArray,
+      classNames,
+      locations: DataConvertService.getLocations(data.locations),
+      tempC: Math.round(data.sensedTemp),
+      condition: data.temperatureLevel,
+    };
+    return weatherData;
+  },
+};
+```
+Serwis do przekształcenia danych pobranych z backendu tak aby były gotowe do wyświetlanie (np. przypisanie odpowiednich zdjęć i zmiana tekstu na odpowiednią wielkość)
 ## Backend
 ### Kontrolery
 ### WeatherController 

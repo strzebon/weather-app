@@ -14,7 +14,7 @@ import java.util.List;
 import static java.lang.Math.sqrt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.*;
+import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.CHILLY;
 
 class ConversionTest {
     private List<WeatherForecastResponse> weatherForecastResponses;
@@ -43,7 +43,7 @@ class ConversionTest {
 
         //then
         assertEquals(List.of(location1), weatherResponseConverted.locations());
-        assertEquals(WARM, weatherResponseConverted.temperatureLevel());
+        assertEquals(CHILLY, weatherResponseConverted.temperatureLevel());
         assertFalse(weatherResponseConverted.isWindy());
         assertEquals(List.of(Precipitation.CLEAR), weatherResponseConverted.precipitation());
         assertEquals(MIN_TEMP, weatherResponseConverted.minTemp());

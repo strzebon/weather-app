@@ -5,3 +5,63 @@
     border: 1px solid black;
     box-shadow: 8px 8px 24px 0px rgb(118, 120, 139);
 }
+
+.save-trip-input {
+    display: flex;
+    width: 90%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px;
+    font-size: 20px;
+}
+
+.save-trip-input label {
+    width: 80%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.save-trip-input input {
+    padding: 8px;
+    color: rgb(58, 57, 57);
+    font-weight: 300;
+}
+
+.save-trip-input button {
+    padding: 8px 10px 8px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 16px;
+    background-color: #00cdac;
+    color: white;
+    font-weight: 500;
+}
+
+.save-trip-input button:hover {
+    background-color: #01a58a;
+}
+
+.weather-container p {
+    margin-bottom: 10px;
+}
+
+.weather-container .delete-button {
+    padding: 8px 10px 8px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 16px;
+    color: white;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.weather-container .delete-button {
+    background-color: rgb(248, 71, 71);
+}
+
+.weather-container .delete-button:hover {
+    background-color: rgb(192, 10, 10);
+}

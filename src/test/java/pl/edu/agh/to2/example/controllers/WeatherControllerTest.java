@@ -76,21 +76,19 @@ class WeatherControllerTest {
     @Test
     void shouldReturnNotFoundLastResponse() throws Exception {
         //given
-        String requestJson = new ObjectMapper().writeValueAsString(null);
+        ResponseHolder.updateLastResponse(null);
 
-        mvc.perform(MockMvcRequestBuilders.get("/weather/current").contentType(APPLICATION_JSON).content(requestJson))
+        mvc.perform(MockMvcRequestBuilders.get("/weather/current"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @Test
     void shouldReturnLastResponseWhenItExists() throws Exception {
         //given
-        WeatherRequestDto weatherRequestDto = new WeatherRequestDto(1, 1);
-        String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
         ResponseHolder.updateLastResponse(new WeatherResponseConverted(List.of("any"), COLD, true, List.of(Precipitation.CLEAR),
                 1.0, 2.0, 3.0));
 
-        mvc.perform(MockMvcRequestBuilders.get("/weather/current").contentType(APPLICATION_JSON).content(requestJson))
+        mvc.perform(MockMvcRequestBuilders.get("/weather/current"))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 

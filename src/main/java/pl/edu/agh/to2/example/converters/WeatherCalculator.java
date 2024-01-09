@@ -15,6 +15,8 @@ class WeatherCalculator {
     private static final String WIND_EXCEPTION_MESSAGE = "Data about wind not found";
     private static final int FLAG_TRUE = 1;
 
+    private WeatherCalculator(){}
+
     static double findMinTemp(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble minTemp = weatherPerHours.stream()
                 .mapToDouble(WeatherPerHour::temp_c)

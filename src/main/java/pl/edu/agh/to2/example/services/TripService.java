@@ -21,11 +21,20 @@ public class TripService {
         return tripRepository.findAll();
     }
 
-    public Optional<Trip> getTrip(int id) {
+    public Optional<Trip> getTrip(int id) throws IllegalArgumentException{
         return tripRepository.findById(id);
     }
 
     public Optional<Trip> getTrip(String name) {
         return tripRepository.findByName(name);
+    }
+
+    public Trip saveTrip(Trip trip) throws IllegalArgumentException{
+        return tripRepository.save(trip);
+    }
+
+    public void deleteTrip(int id) throws IllegalArgumentException {
+        Optional<Trip> trip = this.getTrip(id);
+        trip.ifPresent(tripRepository::delete);
     }
 }
