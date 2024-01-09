@@ -4,24 +4,39 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
+import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class WeatherCalculatorTest {
     private List<WeatherPerHour> weatherPerHours;
+    private WeatherHistoryResponse weatherHistoryResponse;
+    private List<WeatherForecastResponse> weatherForecastResponses;
     private static final double TEMP_VAL = 10;
     private static final double PRECIP_VAL = 3;
     private static final double WIND_VAL = 6;
     private static final int FLAG_FALSE = 0;
+    private static final int FLAG_TRUE = 1;
 
     @BeforeEach
     void setUp() {
         weatherPerHours = new ArrayList<>();
         weatherPerHours.add(new WeatherPerHour(null, TEMP_VAL, PRECIP_VAL, WIND_VAL, FLAG_FALSE, FLAG_FALSE));
+        weatherHistoryResponse = new WeatherHistoryResponse(new ArrayList<>(), new ArrayList<>());
+        weatherHistoryResponse.wasRainyFirstDay().add(0);
+        weatherHistoryResponse.wasRainySecondDay().add(0);
+        weatherForecastResponses = new ArrayList<>();
+        WeatherForecastResponse response = new WeatherForecastResponse(null, weatherPerHours, weatherPerHours);
+        weatherForecastResponses.add(response);
     }
 
     @Test
@@ -136,5 +151,68 @@ class WeatherCalculatorTest {
 
         // then
         assertEquals(expectedSensedTemp, actualSensedTemp);
+    }
+
+    @Test
+    void isMuddyShouldReturnTrueBeforeSix() {
+        // given
+        LocalDateTime date = mock(LocalDateTime.class);
+        LocalDateTime lastDate = mock(LocalDateTime.class);
+        weatherHistoryResponse.wasRainyFirstDay().add(1);
+        when(date.isAfter(lastDate)).thenReturn(false);
+
+        // when
+        boolean isMuddy = WeatherCalculator.checkIsMuddy(weatherHistoryResponse, weatherForecastResponses, date, lastDate);
+
+        // then
+        assertTrue(isMuddy);
+    }
+
+    @Test
+    void isMuddyShouldReturnFalseBeforeSix() {
+        // given
+        LocalDateTime date = mock(LocalDateTime.class);
+        LocalDateTime lastDate = mock(LocalDateTime.class);
+        when(date.isAfter(lastDate)).thenReturn(false);
+        List<WeatherForecastResponse> weatherForecastResponses = mock(List.class);
+
+        // when
+        boolean isMuddy = WeatherCalculator.checkIsMuddy(weatherHistoryResponse, weatherForecastResponses, date, lastDate);
+
+        // then
+        assertFalse(isMuddy);
+    }
+
+    @Test
+    void isMuddyShouldReturnTrueAfterSix() {
+        // given
+        LocalDateTime date = mock(LocalDateTime.class);
+        LocalDateTime lastDate = mock(LocalDateTime.class);
+        weatherHistoryResponse.wasRainyFirstDay().add(1);
+        when(date.isAfter(lastDate)).thenReturn(true);
+        List<WeatherPerHour> weather = List.of(new WeatherPerHour(null, TEMP_VAL, PRECIP_VAL, WIND_VAL, FLAG_TRUE, FLAG_FALSE));
+        WeatherForecastResponse response = new WeatherForecastResponse(null, weather, weatherPerHours);
+        weatherForecastResponses.add(response);
+
+        // when
+        boolean isMuddy = WeatherCalculator.checkIsMuddy(weatherHistoryResponse, weatherForecastResponses, date, lastDate);
+
+        // then
+        assertTrue(isMuddy);
+    }
+
+    @Test
+    void isMuddyShouldReturnFalseAfterSix() {
+        // given
+        LocalDateTime date = mock(LocalDateTime.class);
+        LocalDateTime lastDate = mock(LocalDateTime.class);
+        weatherHistoryResponse.wasRainyFirstDay().add(1);
+        when(date.isAfter(lastDate)).thenReturn(true);
+
+        // when
+        boolean isMuddy = WeatherCalculator.checkIsMuddy(weatherHistoryResponse, weatherForecastResponses, date, lastDate);
+
+        // then
+        assertFalse(isMuddy);
     }
 }

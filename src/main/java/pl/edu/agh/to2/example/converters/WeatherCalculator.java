@@ -96,6 +96,6 @@ class WeatherCalculator {
                     .filter(e -> e == FLAG_TRUE)
                     .findAny();
         }
-        return (firstDay.isPresent() && secondDay.isPresent());
+        return (firstDay.isPresent() || secondDay.isPresent());
     }
 }
