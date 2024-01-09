@@ -30,7 +30,6 @@ public class WeatherService {
     private static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String LOCATION = "location";
     private static final String FORECAST = "forecast";
-    private static final String RAIN = "forecast";
     private final OkHttpClient client;
     private final Gson gson;
 
@@ -60,6 +59,7 @@ public class WeatherService {
         List<Integer> wasRainyFirstDay = new ArrayList<>();
         List<Integer> wasRainySecondDay = new ArrayList<>();
         LocalDate date = LocalDate.now();
+
         for (WeatherRequest weatherRequest : weatherRequests) {
             Request request = createHttpHistoryRequest(weatherRequest, date.minusDays(2));
             try (Response response = client.newCall(request).execute()) {
@@ -77,6 +77,7 @@ public class WeatherService {
             }
         }
         WeatherHistoryResponse historyResponse = new WeatherHistoryResponse(wasRainyFirstDay, wasRainySecondDay);
+
         try {
             ResponseHolder.updateLastResponse(WeatherResponseConverter.convertWeatherResponse(responses, historyResponse));
             return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses, historyResponse));

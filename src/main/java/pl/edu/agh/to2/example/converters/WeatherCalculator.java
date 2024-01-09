@@ -19,7 +19,7 @@ class WeatherCalculator {
     private static final String WIND_EXCEPTION_MESSAGE = "Data about wind not found";
     private static final int FLAG_TRUE = 1;
 
-    private WeatherCalculator(){}
+    private WeatherCalculator() {}
 
     static double findMinTemp(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble minTemp = weatherPerHours.stream()
@@ -76,7 +76,9 @@ class WeatherCalculator {
             LocalDateTime currentTime,
             LocalDateTime latestTimeForToday
     ) {
-        Optional<Integer> firstDay, secondDay;
+        Optional<Integer> firstDay;
+        Optional<Integer> secondDay;
+
         if (currentTime.isAfter(latestTimeForToday)) {
             firstDay = weatherHistoryResponse.wasRainySecondDay().stream()
                     .filter(e -> e == FLAG_TRUE)

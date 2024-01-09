@@ -5,7 +5,7 @@ import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 public class ResponseHolder {
     private static WeatherResponseConverted lastResponse = null;
 
-    private ResponseHolder(){}
+    private ResponseHolder() {}
 
     public static void updateLastResponse(WeatherResponseConverted weatherResponse) {
         lastResponse = weatherResponse;
