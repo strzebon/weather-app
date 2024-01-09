@@ -1,5 +1,7 @@
 import React from 'react';
-import { render, fireEvent, screen, act } from '@testing-library/react';
+import {
+  render, fireEvent, screen, act,
+} from '@testing-library/react';
 import TripElement from '../components/TripElement';
 import TripService from '../services/TripService';
 
@@ -7,22 +9,23 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn(),
 }));
 
-describe('TripElement', () => {
+describe('tripElement', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
   it('should delete trip on button click', async () => {
+    expect.assertions(2);
     const mockRefreshParent = jest.fn();
     const mockTripId = '1';
     const mockTripName = 'Test Trip';
 
     jest.spyOn(TripService, 'deleteTrip').mockResolvedValue();
-    
+
     render(
-      <TripElement id={mockTripId} name={mockTripName} refreshParent={mockRefreshParent} />
+      <TripElement id={mockTripId} name={mockTripName} refreshParent={mockRefreshParent} />,
     );
-    
+
     const deleteButton = screen.getByRole('button', {
       name: 'Delete',
     });
@@ -34,10 +37,11 @@ describe('TripElement', () => {
     });
 
     expect(TripService.deleteTrip).toHaveBeenCalledWith(mockTripId);
-    expect(mockRefreshParent).toHaveBeenCalled();
+    expect(mockRefreshParent).toHaveBeenCalledWith();
   });
 
   it('should handle delete error', async () => {
+    expect.assertions(2);
     const mockRefreshParent = jest.fn();
     const mockTripId = '1';
     const mockTripName = 'Test Trip';
@@ -45,9 +49,9 @@ describe('TripElement', () => {
     jest.spyOn(TripService, 'deleteTrip').mockRejectedValue(new Error('Failed to delete Trip'));
 
     render(
-      <TripElement id={mockTripId} name={mockTripName} refreshParent={mockRefreshParent} />
+      <TripElement id={mockTripId} name={mockTripName} refreshParent={mockRefreshParent} />,
     );
-    
+
     const deleteButton = screen.getByRole('button', {
       name: 'Delete',
     });

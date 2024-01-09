@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import WeatherOverview from '../components/WeatherOverview';
 
-describe('WeatherOverview component', () => {
+describe('weatherOverview component', () => {
   const sampleData = {
     tripName: 'Trip 1',
     classNames: 'sample-class',
@@ -13,7 +13,15 @@ describe('WeatherOverview component', () => {
   };
 
   it('renders trip name when provided', () => {
-    render(<WeatherOverview {...sampleData} />);
+    expect.assertions(3);
+    render(<WeatherOverview
+      tripName={sampleData.tripName}
+      classNames={sampleData.classNames}
+      img={sampleData.img}
+      tempC={sampleData.tempC}
+      condition={sampleData.condition}
+      locations={sampleData.locations}
+    />);
     const tripNameElement = screen.getByText(/Trip Name:/i);
     expect(tripNameElement).toBeInTheDocument();
     expect(tripNameElement).toHaveTextContent('Trip Name:');
@@ -21,7 +29,15 @@ describe('WeatherOverview component', () => {
   });
 
   it('renders weather information correctly', () => {
-    render(<WeatherOverview {...sampleData} />);
+    expect.assertions(4);
+    render(<WeatherOverview
+      tripName={sampleData.tripName}
+      classNames={sampleData.classNames}
+      img={sampleData.img}
+      tempC={sampleData.tempC}
+      condition={sampleData.condition}
+      locations={sampleData.locations}
+    />);
     expect(screen.getByText('Location A')).toBeInTheDocument();
     expect(screen.getByText('25°C')).toBeInTheDocument();
     expect(screen.getByText('Sunny')).toBeInTheDocument();

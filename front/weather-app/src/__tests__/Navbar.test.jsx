@@ -9,12 +9,13 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-describe('Navbar', () => {
+describe('navbar', () => {
   beforeEach(() => {
     mockNavigate = jest.fn();
   });
 
   it('should render the Navbar component', () => {
+    expect.assertions(2);
     render(<Navbar />);
     const logoButton = screen.getByRole('button', { name: /WeatherApp/ });
     const tripsButton = screen.getByRole('button', { name: /My Trips/ });
@@ -24,6 +25,7 @@ describe('Navbar', () => {
   });
 
   it('should contain the correct text and icons', () => {
+    expect.assertions(2);
     render(<Navbar />);
     const logoButton = screen.getByRole('button', { name: /WeatherApp/ });
 
@@ -34,6 +36,7 @@ describe('Navbar', () => {
   });
 
   it('should navigate to home when clicking on the logo', () => {
+    expect.assertions(1);
     render(<Navbar />);
     const logoButton = screen.getByRole('button', { name: /WeatherApp/ });
 
@@ -43,6 +46,7 @@ describe('Navbar', () => {
   });
 
   it('should navigate to trips when clicking on My Trips', () => {
+    expect.assertions(1);
     render(<Navbar />);
     const tripsButton = screen.getByRole('button', { name: /My Trips/ });
 

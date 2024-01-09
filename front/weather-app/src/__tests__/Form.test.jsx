@@ -24,12 +24,14 @@ jest.mock('react-router-dom', () => {
 
 describe('form component', () => {
   it('renders form elements correctly', () => {
+    expect.assertions(2);
     render(<Form />);
     expect(screen.getByText('Weather Form')).toBeInTheDocument();
     expect(screen.getByText('Get Weather ⛅')).toBeInTheDocument();
   });
 
   it('handles trip name input change', () => {
+    expect.assertions(1);
     render(<Form />);
     const tripNameInput = screen.getByPlaceholderText('trip name...');
     fireEvent.change(tripNameInput, { target: { value: 'My Trip' } });

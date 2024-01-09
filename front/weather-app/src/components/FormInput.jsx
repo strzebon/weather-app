@@ -1,7 +1,8 @@
 import { useState, useEffect, React } from 'react';
+import PropTypes from 'prop-types';
 import '../styles/FormInput.css';
 
-export default function FormInput({ handleChange, id }) {
+function FormInput({ handleChange, id }) {
   const [lattitude, setLattitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [showErrorLattitude, setShowErrorLattitude] = useState(true);
@@ -67,3 +68,10 @@ export default function FormInput({ handleChange, id }) {
     </>
   );
 }
+
+FormInput.propTypes = {
+  handleChange: PropTypes.func.isRequired,
+  id: PropTypes.number.isRequired,
+};
+
+export default FormInput;

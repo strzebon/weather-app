@@ -1,7 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import '../styles/WeatherOverview.css';
 
-export default function WeatherOverview({
+function WeatherOverview({
   tripName, classNames, img, tempC, condition, locations,
 }) {
   return (
@@ -24,7 +25,10 @@ export default function WeatherOverview({
         <div className="information-container">
           <h2 className="weather-city-name">{locations}</h2>
           <span className="weather-img-container">
-            {img.map((weatherImg) => <img src={weatherImg} alt="conditions" className="weather-img-present" />)}
+            {img.map((weatherImg) => (
+              <img key={weatherImg} src={weatherImg} alt="conditions" className="weather-img-present" />
+            ))}
+
           </span>
           <h3 className="weather-temperature">
             {tempC}
@@ -36,3 +40,14 @@ export default function WeatherOverview({
     </>
   );
 }
+
+WeatherOverview.propTypes = {
+  tripName: PropTypes.string.isRequired,
+  classNames: PropTypes.string.isRequired,
+  img: PropTypes.arrayOf(PropTypes.string).isRequired,
+  tempC: PropTypes.number.isRequired,
+  condition: PropTypes.string.isRequired,
+  locations: PropTypes.string.isRequired,
+};
+
+export default WeatherOverview;
