@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  render, waitFor,
+  render, fireEvent, waitFor, screen, act,
 } from '@testing-library/react';
 import * as ReactRouterDom from 'react-router-dom';
 import WeatherView from '../components/WeatherView';
@@ -18,7 +18,7 @@ jest.mock('react-router-dom', () => ({
   useParams: jest.fn(),
 }));
 
-describe('weatherView component', () => {
+describe('WeatherView component', () => {
   beforeEach(() => {
     WeatherService.getCurrentWeather.mockResolvedValue({
       precipitation: ['RAIN'],
@@ -48,11 +48,11 @@ describe('weatherView component', () => {
   });
 
   it('renders trip weather when in trip view', async () => {
-    expect.assertions(1);
     ReactRouterDom.useLocation.mockReturnValue({ pathname: '/trips/123' });
     render(<WeatherView />);
     await waitFor(() => {
       expect(TripService.getTripById).toHaveBeenCalledWith('123');
+      expect(WeatherService.getWeatherByCoordinates).toHaveBeenCalled();
     });
   });
 });

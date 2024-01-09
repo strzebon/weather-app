@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import WeatherOverview from '../components/WeatherOverview';
 
-describe('weatherOverview component', () => {
+describe('WeatherOverview component', () => {
   const sampleData = {
     tripName: 'Trip 1',
     classNames: 'sample-class',
@@ -13,7 +13,6 @@ describe('weatherOverview component', () => {
   };
 
   it('renders trip name when provided', () => {
-    expect.assertions(3);
     render(<WeatherOverview {...sampleData} />);
     const tripNameElement = screen.getByText(/Trip Name:/i);
     expect(tripNameElement).toBeInTheDocument();
@@ -22,7 +21,6 @@ describe('weatherOverview component', () => {
   });
 
   it('renders weather information correctly', () => {
-    expect.assertions(4);
     render(<WeatherOverview {...sampleData} />);
     expect(screen.getByText('Location A')).toBeInTheDocument();
     expect(screen.getByText('25°C')).toBeInTheDocument();
