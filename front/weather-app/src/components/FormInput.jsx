@@ -56,12 +56,12 @@ export default function FormInput({ handleChange, id }) {
       </h3>
       <label htmlFor="lattitude">
         Lattitude
-        <input onChange={lattitudeValidation} name="lattitude" id="lattitude" type="text" className="latlong-form-input" />
+        <input onChange={lattitudeValidation} name="lattitude" id="lattitude" type="text" className="latlong-form-input" placeholder="Enter Lattitude..." />
       </label>
       {showErrorLattitude && lattitude !== '' && <p className="form-error">* Lattitude must be between -90 and 90</p>}
       <label htmlFor="longitude">
         Longitude
-        <input onChange={longitudeValidation} name="longitude" id="longitude" type="text" className="latlong-form-input" />
+        <input onChange={longitudeValidation} name="longitude" id="longitude" type="text" className="latlong-form-input" placeholder="Enter Longitude..." />
       </label>
       {showErrorLongitude && longitude !== '' && <p className="form-error">* Longitude must be between -180 and 180</p>}
     </>

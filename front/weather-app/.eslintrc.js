@@ -2,8 +2,9 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
+    'jest/globals': true,
   },
-  extends: 'airbnb',
+  extends: ['airbnb', 'plugin:jest/all'],
   overrides: [
     {
       env: {
@@ -24,5 +25,17 @@ module.exports = {
   rules: {
     'react/prop-types': 0,
     'no-console': 'off',
+    'jest/no-hooks': [
+      'error',
+      {
+        allow: [
+          'afterEach',
+          'beforeEach',
+        ],
+      },
+    ],
   },
+  plugins: [
+    'jest',
+  ],
 };

@@ -12,7 +12,9 @@ export default function TripElement({ id, name, refreshParent }) {
 
   const handleDeleteButtonClick = () => {
     TripService.deleteTrip(id)
-      .then(() => refreshParent())
+      .then(() => {
+        refreshParent();
+      })
       .catch((error) => console.error(error));
   };
 

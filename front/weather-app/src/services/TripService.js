@@ -8,7 +8,7 @@ const TripService = {
       const response = await axios.get(`${enpointURL}/trips`);
       return response.data;
     } catch (error) {
-      throw new Error('Failed to fetch trip of id:');
+      throw new Error('Failed to fetch trips');
     }
   },
 
