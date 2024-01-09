@@ -13,7 +13,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static pl.edu.agh.to2.example.converters.WeatherCalculator.*;
+import static pl.edu.agh.to2.example.converters.WeatherCalculator.calculateSensedTemp;
+import static pl.edu.agh.to2.example.converters.WeatherCalculator.checkIsMuddy;
+import static pl.edu.agh.to2.example.converters.WeatherCalculator.checkWillItRain;
+import static pl.edu.agh.to2.example.converters.WeatherCalculator.checkWillItSnow;
+import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMaxPrecip;
+import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMaxWind;
+import static pl.edu.agh.to2.example.converters.WeatherCalculator.findMinTemp;
 import static pl.edu.agh.to2.example.models.weather.Precipitation.CLEAR;
 import static pl.edu.agh.to2.example.models.weather.Precipitation.RAIN;
 import static pl.edu.agh.to2.example.models.weather.Precipitation.SNOW;
