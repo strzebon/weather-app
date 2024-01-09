@@ -8,7 +8,7 @@ jest.mock('react', () => ({
   useEffect: jest.fn(),
 }));
 
-describe('FormInput component', () => {
+describe('formInput component', () => {
   const mockUseState = (initialValue) => {
     let value = initialValue;
     const setValue = (newValue) => {
@@ -23,12 +23,14 @@ describe('FormInput component', () => {
   });
 
   it('renders FormInput component', () => {
+    expect.assertions(2);
     render(<FormInput />);
     expect(screen.getByLabelText('Lattitude')).toBeInTheDocument();
     expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
   });
 
   it('updates lattitude input', () => {
+    expect.assertions(1);
     render(<FormInput />);
     const lattitudeInput = screen.getByLabelText('Lattitude');
     fireEvent.change(lattitudeInput, { target: { value: '50' } });
@@ -37,6 +39,7 @@ describe('FormInput component', () => {
   });
 
   it('updates longitude input', () => {
+    expect.assertions(1);
     render(<FormInput />);
     const longitudeInput = screen.getByLabelText('Longitude');
     fireEvent.change(longitudeInput, { target: { value: '20' } });
@@ -45,6 +48,7 @@ describe('FormInput component', () => {
   });
 
   it('updates state and calls handleChange on input change', async () => {
+    expect.assertions(2);
     const handleChangeMock = jest.fn();
     render(<FormInput id={1} handleChange={handleChangeMock} />);
     const lattitudeInput = screen.getByLabelText('Lattitude');
