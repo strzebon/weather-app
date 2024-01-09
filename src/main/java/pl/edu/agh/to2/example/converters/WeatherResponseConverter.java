@@ -26,6 +26,8 @@ import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.determineTe
 public class WeatherResponseConverter {
     private static final double MIN_WINDY_VALUE = 5;
 
+    private WeatherResponseConverter(){}
+
     public static WeatherResponseConverted convertWeatherResponse(List<WeatherForecastResponse> weatherForecastResponses)
             throws MissingDataException {
         List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(weatherForecastResponses);
