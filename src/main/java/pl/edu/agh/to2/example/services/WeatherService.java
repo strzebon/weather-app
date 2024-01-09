@@ -26,6 +26,7 @@ import java.util.*;
 @Service
 public class WeatherService {
     private static final String URL_FORECAST = "http://api.weatherapi.com/v1/forecast.json";
+    private static final String URL_HISTORY = "http://api.weatherapi.com/v1/history.json";
     private static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String LOCATION = "location";
     private static final String FORECAST = "forecast";
@@ -98,7 +99,7 @@ public class WeatherService {
     private Request createHttpHistoryRequest(WeatherRequest weatherRequest, LocalDate date) {
         String params = weatherRequest.lat() + "," + weatherRequest.lng();
         String dt = date.toString();
-        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
+        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_HISTORY)).newBuilder()
                 .addQueryParameter("key", API_KEY)
                 .addQueryParameter("q", params)
                 .addQueryParameter("dt", dt);
