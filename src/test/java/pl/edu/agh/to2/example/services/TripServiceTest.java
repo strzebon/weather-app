@@ -22,28 +22,36 @@ class TripServiceTest {
     private TripService tripService;
 
     @Test
-    void getTripsTest() {
+    void shouldReturnAllTripsFromDb() {
         assertEquals(3, tripService.getTrips().size());
     }
 
     @Test
-    void getTripByIdTest() {
+    void shouldReturnEmptyWhenWrongId() {
         assertTrue(tripService.getTrip(4).isEmpty());
+    }
+
+    @Test
+    void shouldReturnProperTripWhenRightId() {
         Optional<Trip> trip = tripService.getTrip(2);
         assertTrue(trip.isPresent());
         assertEquals("trip2", trip.get().getName());
     }
 
     @Test
-    void getTripByNameTest() {
+    void shouldReturnEmptyWhenWrongName() {
         assertTrue(tripService.getTrip("trip4").isEmpty());
+    }
+
+    @Test
+    void shouldReturnProperTripWhenRightName() {
         Optional<Trip> trip = tripService.getTrip("trip2");
         assertTrue(trip.isPresent());
         assertEquals(2, trip.get().getId());
     }
 
     @Test
-    void getTripLocationsTest() {
+    void shouldReturnTripWithProperLocationsWhenRightId() {
         Optional<Trip> trip = tripService.getTrip(3);
         assertTrue(trip.isPresent());
         List<Location> locations = trip.get().getLocations();
