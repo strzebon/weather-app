@@ -67,7 +67,7 @@ class WeatherControllerTest {
         List<WeatherRequestDto> weatherRequestDto = List.of(new WeatherRequestDto(1, 1));
         String requestJson = new ObjectMapper().writeValueAsString(weatherRequestDto);
         when(weatherService.findWeatherForecast(any())).thenReturn(Optional.of(
-                new WeatherResponseConverted(emptyList(), COLD, true, List.of(Precipitation.CLEAR), 1, 1, 1)));
+                new WeatherResponseConverted(emptyList(), COLD, true, List.of(Precipitation.CLEAR), 1, 1, 1, true)));
 
         mvc.perform(MockMvcRequestBuilders.post("/weather").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -86,7 +86,7 @@ class WeatherControllerTest {
     void shouldReturnLastResponseWhenItExists() throws Exception {
         //given
         ResponseHolder.updateLastResponse(new WeatherResponseConverted(List.of("any"), COLD, true, List.of(Precipitation.CLEAR),
-                1.0, 2.0, 3.0));
+                1.0, 2.0, 3.0, true));
 
         mvc.perform(MockMvcRequestBuilders.get("/weather/current"))
                 .andExpect(MockMvcResultMatchers.status().isOk());

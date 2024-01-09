@@ -15,14 +15,13 @@ import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 public class WeatherService {
@@ -30,6 +29,7 @@ public class WeatherService {
     private static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String LOCATION = "location";
     private static final String FORECAST = "forecast";
+    private static final String RAIN = "forecast";
     private final OkHttpClient client;
     private final Gson gson;
 
@@ -42,7 +42,7 @@ public class WeatherService {
     public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
         List<WeatherForecastResponse> responses = new ArrayList<>();
         for (WeatherRequest weatherRequest : weatherRequests) {
-            Request request = createHttpRequest(weatherRequest);
+            Request request = createHttpForecastRequest(weatherRequest);
 
             try (Response response = client.newCall(request).execute()) {
                 if (response.code() == 200) {
@@ -56,20 +56,52 @@ public class WeatherService {
         if (responses.isEmpty()) {
             return Optional.empty();
         }
+        List<Integer> wasRainyFirstDay = new ArrayList<>();
+        List<Integer> wasRainySecondDay = new ArrayList<>();
+        LocalDate date = LocalDate.now();
+        for (WeatherRequest weatherRequest : weatherRequests) {
+            Request request = createHttpHistoryRequest(weatherRequest, date.minusDays(2));
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    int wasRainy = getRainInformation(response);
+                    wasRainyFirstDay.add(wasRainy);
+                }
+            }
+            request = createHttpHistoryRequest(weatherRequest, date.minusDays(1));
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    int wasRainy = getRainInformation(response);
+                    wasRainySecondDay.add(wasRainy);
+                }
+            }
+        }
+        WeatherHistoryResponse historyResponse = new WeatherHistoryResponse(wasRainyFirstDay, wasRainySecondDay);
         try {
-            ResponseHolder.updateLastResponse(WeatherResponseConverter.convertWeatherResponse(responses));
-            return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses));
+            ResponseHolder.updateLastResponse(WeatherResponseConverter.convertWeatherResponse(responses, historyResponse));
+            return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses, historyResponse));
         } catch (MissingDataException e) {
             return Optional.empty();
         }
     }
 
-    private Request createHttpRequest(WeatherRequest weatherRequest) {
+    private Request createHttpForecastRequest(WeatherRequest weatherRequest) {
         String params = weatherRequest.lat() + "," + weatherRequest.lng();
         HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
                 .addQueryParameter("key", API_KEY)
                 .addQueryParameter("q", params)
                 .addQueryParameter("days", "2");
+        return new Request.Builder()
+                .url(builder.build())
+                .build();
+    }
+
+    private Request createHttpHistoryRequest(WeatherRequest weatherRequest, LocalDate date) {
+        String params = weatherRequest.lat() + "," + weatherRequest.lng();
+        String dt = date.toString();
+        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
+                .addQueryParameter("key", API_KEY)
+                .addQueryParameter("q", params)
+                .addQueryParameter("dt", dt);
         return new Request.Builder()
                 .url(builder.build())
                 .build();
@@ -89,5 +121,13 @@ public class WeatherService {
         List<WeatherPerHour> tomorrowWeather = List.of(gson.fromJson(tomorrowWeatherJson, WeatherPerHour[].class));
 
         return new WeatherForecastResponse(location, todayWeather, tomorrowWeather);
+    }
+
+    private int getRainInformation(Response response) throws IOException {
+        JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
+        return json.getAsJsonObject(FORECAST)
+                .getAsJsonArray("forecastday")
+                .get(0).getAsJsonObject().
+                getAsJsonObject("day").get("daily_will_it_rain").getAsInt();
     }
 }
