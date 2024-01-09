@@ -6,6 +6,7 @@ import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.Precipitation;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.CHILLY;
 
 class ConversionTest {
     private List<WeatherForecastResponse> weatherForecastResponses;
+    private WeatherHistoryResponse weatherHistoryResponse;
     private static final String location1 = "London";
     private static final double MIN_TEMP = 5.0;
     private static final double MAX_WIND = 3.0;
@@ -31,6 +33,7 @@ class ConversionTest {
         weatherPerHours.add(new WeatherPerHour(null, 15, 3, 2, 0, 0));
         weatherPerHours.add(new WeatherPerHour(null, MIN_TEMP, 5, 1, 0, 0));
         weatherForecastResponses.add(new WeatherForecastResponse(location1, weatherPerHours, weatherPerHours));
+        weatherHistoryResponse = new WeatherHistoryResponse(List.of(0, 0, 0), List.of(0, 0, 0));
     }
 
     @Test
@@ -39,7 +42,7 @@ class ConversionTest {
         double expectedSenseTemp = 33 + (0.478 + 0.237 * sqrt(MAX_WIND) - 0.0124 * MAX_WIND) * (MIN_TEMP - 33);
 
         //when
-        WeatherResponseConverted weatherResponseConverted = WeatherResponseConverter.convertWeatherResponse(weatherForecastResponses);
+        WeatherResponseConverted weatherResponseConverted = WeatherResponseConverter.convertWeatherResponse(weatherForecastResponses, weatherHistoryResponse);
 
         //then
         assertEquals(List.of(location1), weatherResponseConverted.locations());
@@ -49,5 +52,6 @@ class ConversionTest {
         assertEquals(MIN_TEMP, weatherResponseConverted.minTemp());
         assertEquals(MAX_PRECIP, weatherResponseConverted.maxPrecip());
         assertEquals(expectedSenseTemp, weatherResponseConverted.sensedTemp());
+        assertFalse(weatherResponseConverted.isMuddy());
     }
 }

@@ -2,7 +2,11 @@ package pl.edu.agh.to2.example.converters;
 
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
+import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
+import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -65,5 +69,35 @@ class WeatherCalculator {
 
     static double calculateSensedTemp(double temp, double wind) {
         return 33 + (0.478 + 0.237 * sqrt(wind) - 0.0124 * wind) * (temp - 33);
+    }
+    static boolean checkIsMuddy(
+            WeatherHistoryResponse weatherHistoryResponse,
+            List<WeatherForecastResponse> weatherForecastResponses,
+            LocalDateTime currentTime,
+            LocalDateTime latestTimeForToday
+    ) {
+        Optional<Integer> firstDay, secondDay;
+        if (currentTime.isAfter(latestTimeForToday)) {
+            firstDay = weatherHistoryResponse.wasRainySecondDay().stream()
+                    .filter(e -> e == FLAG_TRUE)
+                    .findAny();
+            secondDay = weatherForecastResponses.stream()
+                    .map(WeatherForecastResponse::todayWeather)
+                    .flatMap(Collection::stream)
+                    .toList()
+                    .stream()
+                    .map(WeatherPerHour::will_it_rain)
+                    .filter(rain -> rain == FLAG_TRUE)
+                    .findAny();
+        }
+        else {
+            firstDay = weatherHistoryResponse.wasRainyFirstDay().stream()
+                    .filter(e -> e == FLAG_TRUE)
+                    .findAny();
+            secondDay = weatherHistoryResponse.wasRainySecondDay().stream()
+                    .filter(e -> e == FLAG_TRUE)
+                    .findAny();
+        }
+        return (firstDay.isPresent() || secondDay.isPresent());
     }
 }

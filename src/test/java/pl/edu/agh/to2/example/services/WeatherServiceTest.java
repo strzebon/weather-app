@@ -21,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.Main;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
+import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 import java.io.IOException;
@@ -106,9 +107,11 @@ class WeatherServiceTest {
     private void applyMocks() throws IOException {
         //given
         String hourTitle = "hour";
+        String dayTitle = "day";
         WeatherPerHour[] weatherPerHour = new WeatherPerHour[]{
                 new WeatherPerHour(null, TEMP, PRECIP, WIND, FLAG_TRUE, FLAG_TRUE)
         };
+        WeatherHistoryResponse weatherHistoryResponse = new WeatherHistoryResponse(List.of(1), List.of(1));
 
         when(response.code()).thenReturn(200);
         when(response.body()).thenReturn(responseBody);
@@ -126,6 +129,10 @@ class WeatherServiceTest {
         when(weatherElement.getAsJsonObject()).thenReturn(weatherObject);
         when(weatherObject.getAsJsonArray(hourTitle)).thenReturn(todayWeatherJsonArray);
         when(todayWeatherJsonArray.size()).thenReturn(0);
+
+        when(weatherObject.getAsJsonObject(dayTitle)).thenReturn(weatherObject);
+        when(weatherObject.get(any())).thenReturn(jsonElement);
+        when(jsonElement.getAsInt()).thenReturn(1);
 
         when(gson.fromJson(todayWeatherJsonArray, WeatherPerHour[].class)).thenReturn(weatherPerHour);
     }

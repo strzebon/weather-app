@@ -14,6 +14,7 @@ public record WeatherResponseConverted(
         List<Precipitation> precipitation,
         double minTemp,
         double sensedTemp,
-        double maxPrecip
+        double maxPrecip,
+        boolean isMuddy
 ) {
 }
