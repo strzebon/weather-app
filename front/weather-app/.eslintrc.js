@@ -4,7 +4,7 @@ module.exports = {
     es2021: true,
     'jest/globals': true,
   },
-  extends: ['airbnb', 'plugin:jest/all', 'eslint:recommended', 'plugin:react/recommended'],
+  extends: ['plugin:jest/all', 'eslint:recommended', 'plugin:react/recommended'],
   overrides: [
     {
       env: {
