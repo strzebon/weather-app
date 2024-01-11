@@ -1,4 +1,4 @@
-package pl.edu.agh.to2.example.configfortests;
+package pl.edu.agh.to2.example.repositiories;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +10,7 @@ import pl.edu.agh.to2.example.repositories.TripRepository;
 import java.util.List;
 
 @Configuration
-public class TripConfigurator {
+public class TripDbConfigurator {
     @Bean
     CommandLineRunner commandLineRunner(TripRepository tripRepository) {
         return args -> {
