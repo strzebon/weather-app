@@ -1,5 +1,6 @@
 package pl.edu.agh.to2.example.converters;
 
+import lombok.NoArgsConstructor;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
@@ -13,13 +14,12 @@ import java.util.OptionalDouble;
 
 import static java.lang.Math.sqrt;
 
+@NoArgsConstructor
 class WeatherCalculator {
     private static final String TEMP_EXCEPTION_MESSAGE = "Data about temperature not found";
     private static final String PRECIP_EXCEPTION_MESSAGE = "Data about precipitation not found";
     private static final String WIND_EXCEPTION_MESSAGE = "Data about wind not found";
     private static final int FLAG_TRUE = 1;
-
-    private WeatherCalculator() {}
 
     static double findMinTemp(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble minTemp = weatherPerHours.stream()
@@ -70,6 +70,7 @@ class WeatherCalculator {
     static double calculateSensedTemp(double temp, double wind) {
         return 33 + (0.478 + 0.237 * sqrt(wind) - 0.0124 * wind) * (temp - 33);
     }
+
     static boolean checkIsMuddy(
             WeatherHistoryResponse weatherHistoryResponse,
             List<WeatherForecastResponse> weatherForecastResponses,
@@ -91,8 +92,7 @@ class WeatherCalculator {
                     .map(WeatherPerHour::will_it_rain)
                     .filter(rain -> rain == FLAG_TRUE)
                     .findAny();
-        }
-        else {
+        } else {
             firstDay = weatherHistoryResponse.wasRainyFirstDay().stream()
                     .filter(e -> e == FLAG_TRUE)
                     .findAny();

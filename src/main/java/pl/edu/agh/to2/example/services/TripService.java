@@ -21,7 +21,7 @@ public class TripService {
         return tripRepository.findAll();
     }
 
-    public Optional<Trip> getTrip(int id) throws IllegalArgumentException{
+    public Optional<Trip> getTrip(int id) throws IllegalArgumentException {
         return tripRepository.findById(id);
     }
 
@@ -29,7 +29,7 @@ public class TripService {
         return tripRepository.findByName(name);
     }
 
-    public Trip saveTrip(Trip trip) throws IllegalArgumentException{
+    public Trip saveTrip(Trip trip) throws IllegalArgumentException {
         return tripRepository.save(trip);
     }
 

@@ -21,7 +21,10 @@ import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class WeatherService {

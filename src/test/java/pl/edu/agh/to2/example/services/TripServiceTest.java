@@ -4,15 +4,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.agh.to2.example.models.location.Location;
 import pl.edu.agh.to2.example.models.trip.Trip;
+import pl.edu.agh.to2.example.repositories.TripRepository;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -21,8 +24,14 @@ class TripServiceTest {
     @Autowired
     private TripService tripService;
 
+    @MockBean
+    private TripRepository tripRepository;
+
     @Test
     void shouldReturnAllTripsFromDb() {
+        //given
+        when(tripRepository.findAll()).thenReturn(List.of());
+
         assertEquals(3, tripService.getTrips().size());
     }
 

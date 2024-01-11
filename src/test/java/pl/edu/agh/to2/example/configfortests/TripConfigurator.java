@@ -1,4 +1,4 @@
-package pl.edu.agh.to2.example.configurators;
+package pl.edu.agh.to2.example.configfortests;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
