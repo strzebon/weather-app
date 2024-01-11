@@ -24,6 +24,8 @@ export default function Form() {
   const [saveTrip, setSaveTrip] = useState(false);
   const [tripName, setTripName] = useState('');
 
+  const [saveTripError, setSaveTripError] = useState(false);
+
   const navigate = useNavigate();
 
   const handleAddClick = (event) => {
@@ -51,6 +53,7 @@ export default function Form() {
 
   const handleNameInputChange = (event) => {
     setTripName(event.target.value);
+    setSaveTripError(false);
   };
 
   const checkData = () => data.find((element) => element.validData === false) || (saveTrip && tripName === '');
@@ -66,7 +69,10 @@ export default function Form() {
         { name: tripName, locations: data.map((element) => element.coordinates) },
       )
         .then((responseData) => { navigate(`/trips/${responseData.id}`); })
-        .catch((error) => console.log(error));
+        .catch((error) => {
+          setSaveTripError(true);
+          console.log(error)
+        });
     } else {
       sessionStorage.setItem('lastTrip', JSON.stringify(data.map((element) => element.coordinates)));
       WeatherService.getWeatherByCoordinates(data.map((element) => element.coordinates))
@@ -94,6 +100,7 @@ export default function Form() {
           <input disabled={!saveTrip} onChange={handleNameInputChange} className="latlong-save-input" placeholder="trip name..." />
         </div>
         {saveTrip && tripName === '' && <p className="form-error">* Invalid trip name</p>}
+        {saveTripError && <p className="form-error">* Trip with this name already exist</p>}
         <button type="submit" onClick={formWeatherRequest} className="latlong-form-submit">Get Weather ⛅</button>
         {showSubmitError && <p className="form-error">* Invalid data in the form</p>}
       </form>

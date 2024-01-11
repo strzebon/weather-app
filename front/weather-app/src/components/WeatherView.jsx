@@ -11,6 +11,8 @@ export default function WeatherView() {
   const [weatherTripName, setWeatherTripName] = useState('');
   const [savedTrip, setSavedTrip] = useState(false);
 
+  const [saveTripError, setSaveTripError] = useState(false);
+
   const [tripName, setTripName] = useState('');
   const [tripNameError, setTripNameError] = useState(false);
 
@@ -36,7 +38,9 @@ export default function WeatherView() {
           WeatherService.getCurrentWeather()
             .then((data) => {
               setWeatherInfo(DataConvertService.getWeatherInfo(data));
-            }).catch((error) => console.error(error.message));
+            }).catch((error) => {
+              setSaveTripError(true);
+              console.error(error.message)});
         }
       } catch (error) {
         console.error(error.message);
@@ -48,6 +52,7 @@ export default function WeatherView() {
   const handleNameChange = (event) => {
     setTripName(event.target.value);
     setTripNameError(false);
+    setSaveTripError(false);
   };
 
   const handleSaveButton = () => {
@@ -96,6 +101,7 @@ export default function WeatherView() {
         {savedTrip
                 && <button type="submit" className="delete-button" onClick={handleDeleteButton}>Delete</button>}
         {tripNameError && <p className="form-error">* Invalid trip name</p>}
+        {saveTripError && <p className="form-error">* Trip with this name already exist</p>}
       </div>
     </div>
   );
