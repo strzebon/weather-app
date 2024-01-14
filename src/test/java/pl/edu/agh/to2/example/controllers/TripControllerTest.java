@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import pl.edu.agh.to2.example.Main;
+import pl.edu.agh.to2.example.exceptions.ArgumentToUseInDbIsNullException;
 import pl.edu.agh.to2.example.models.trip.Trip;
 import pl.edu.agh.to2.example.services.TripService;
 
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -40,7 +42,9 @@ class TripControllerTest {
     void shouldReturnBadRequestWhenSavingInServiceFails() {
         //given
         String requestJson = new ObjectMapper().writeValueAsString(null);
-        doThrow(IllegalArgumentException.class).when(tripService).saveTrip(any());
+        given(tripService.saveTrip(any())).willAnswer(invocation -> {
+            throw new ArgumentToUseInDbIsNullException();
+        });
 
         mvc.perform(MockMvcRequestBuilders.post("/trips").contentType(APPLICATION_JSON).content(requestJson))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -62,7 +66,7 @@ class TripControllerTest {
     void shouldReturnBadRequestWhenFindingByIdInServiceFails() {
         //given
         int id = 0;
-        when(tripService.getTrip(any(Integer.class))).thenThrow(IllegalArgumentException.class);
+        when(tripService.getTrip(id)).thenThrow(ArgumentToUseInDbIsNullException.class);
 
         mvc.perform(MockMvcRequestBuilders.get("/trips/{id}", id))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -104,7 +108,9 @@ class TripControllerTest {
     void shouldReturnBadRequestWhenDeletingTripFails() {
         //given
         int id = 0;
-        doThrow(IllegalArgumentException.class).when(tripService).deleteTrip(id);
+        doThrow(ArgumentToUseInDbIsNullException.class).when(tripService).deleteTrip(id);
+//        willAnswer( invocation -> { throw new CallToApiWentWrongException(); }).given(tripService).deleteTrip(id);
+
 
         mvc.perform(MockMvcRequestBuilders.delete("/trips/{id}", id))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());

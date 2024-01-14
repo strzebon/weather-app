@@ -3,7 +3,15 @@ package pl.edu.agh.to2.example.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import pl.edu.agh.to2.example.exceptions.ArgumentToUseInDbIsNullException;
 import pl.edu.agh.to2.example.models.trip.Trip;
 import pl.edu.agh.to2.example.services.TripService;
 
@@ -30,7 +38,7 @@ public class TripController {
         Trip savedTrip;
         try {
             savedTrip = tripService.saveTrip(trip);
-        } catch (IllegalArgumentException exception) {
+        } catch (ArgumentToUseInDbIsNullException ignored) {
             return new ResponseEntity<>(BAD_REQUEST);
         }
         return new ResponseEntity<>(savedTrip, OK);
@@ -41,7 +49,7 @@ public class TripController {
         Optional<Trip> trip;
         try {
             trip = tripService.getTrip(id);
-        } catch (IllegalArgumentException exception) {
+        } catch (ArgumentToUseInDbIsNullException ignored) {
             return new ResponseEntity<>(BAD_REQUEST);
         }
         return trip
@@ -58,7 +66,7 @@ public class TripController {
     public ResponseEntity<HttpStatus> deleteTripById(@PathVariable int id) {
         try {
             tripService.deleteTrip(id);
-        } catch (IllegalArgumentException exception) {
+        } catch (ArgumentToUseInDbIsNullException ignored) {
             return new ResponseEntity<>(BAD_REQUEST);
         }
         return new ResponseEntity<>(OK);

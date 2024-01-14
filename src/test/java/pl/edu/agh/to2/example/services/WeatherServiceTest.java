@@ -19,9 +19,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.Main;
+import pl.edu.agh.to2.example.exceptions.CallToApiWentWrongException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
-import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 import java.io.IOException;
@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -72,9 +73,11 @@ class WeatherServiceTest {
     void shouldThrowExceptionWhenProblemWithExecute() throws IOException {
         //given
         when(okHttpClient.newCall(any())).thenReturn(call);
-        when(okHttpClient.newCall(any()).execute()).thenThrow(IOException.class);
+        given(okHttpClient.newCall(any()).execute()).willAnswer(invocation -> {
+            throw new CallToApiWentWrongException();
+        });
 
-        assertThrows(IOException.class, () -> service.findWeather(List.of(new WeatherRequest(1, 1))));
+        assertThrows(CallToApiWentWrongException.class, () -> service.findWeather(List.of(new WeatherRequest(1, 1))));
     }
 
     @Test
@@ -111,7 +114,6 @@ class WeatherServiceTest {
         WeatherPerHour[] weatherPerHour = new WeatherPerHour[]{
                 new WeatherPerHour(null, TEMP, PRECIP, WIND, FLAG_TRUE, FLAG_TRUE)
         };
-        WeatherHistoryResponse weatherHistoryResponse = new WeatherHistoryResponse(List.of(1), List.of(1));
 
         when(response.code()).thenReturn(200);
         when(response.body()).thenReturn(responseBody);

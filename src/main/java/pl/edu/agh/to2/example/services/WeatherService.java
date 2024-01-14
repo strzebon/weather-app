@@ -3,6 +3,7 @@ package pl.edu.agh.to2.example.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.to2.example.converters.WeatherResponseConverter;
+import pl.edu.agh.to2.example.exceptions.CallToApiWentWrongException;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
