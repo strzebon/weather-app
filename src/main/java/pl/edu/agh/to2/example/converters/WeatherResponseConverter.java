@@ -32,11 +32,12 @@ public class WeatherResponseConverter {
 
     public static WeatherResponseConverted convertWeatherResponse(
             List<WeatherForecastResponse> weatherForecastResponses,
-            WeatherHistoryResponse weatherHistoryResponse
+            WeatherHistoryResponse weatherHistoryResponse,
+            LocalDateTime currentTime,
+            LocalDateTime latestTimeForToday
+
     ) throws MissingDataException {
-        LocalDateTime currentTime = LocalDateTime.now();
-        LocalDateTime latestTimeForToday = LocalDateTime.of(currentTime.getYear(), currentTime.getMonth(),
-                currentTime.getDayOfMonth(), 6, 0);
+
         List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(
                 weatherForecastResponses,
                 currentTime,

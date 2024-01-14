@@ -23,7 +23,7 @@ class WeatherCalculator {
 
     static double findMinTemp(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble minTemp = weatherPerHours.stream()
-                .mapToDouble(WeatherPerHour::temp_c)
+                .mapToDouble(WeatherPerHour::tempC)
                 .min();
         if (minTemp.isEmpty()) {
             throw new MissingDataException(TEMP_EXCEPTION_MESSAGE);
@@ -33,7 +33,7 @@ class WeatherCalculator {
 
     static double findMaxPrecip(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble maxPrecip = weatherPerHours.stream()
-                .mapToDouble(WeatherPerHour::precip_mm)
+                .mapToDouble(WeatherPerHour::precipMm)
                 .max();
         if (maxPrecip.isEmpty()) {
             throw new MissingDataException(PRECIP_EXCEPTION_MESSAGE);
@@ -43,7 +43,7 @@ class WeatherCalculator {
 
     static double findMaxWind(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble maxWind = weatherPerHours.stream()
-                .mapToDouble(WeatherPerHour::wind_kph)
+                .mapToDouble(WeatherPerHour::windKph)
                 .max();
         if (maxWind.isEmpty()) {
             throw new MissingDataException(WIND_EXCEPTION_MESSAGE);
@@ -53,7 +53,7 @@ class WeatherCalculator {
 
     static boolean checkWillItRain(List<WeatherPerHour> weatherPerHours) {
         Optional<Integer> willItRain = weatherPerHours.stream()
-                .map(WeatherPerHour::will_it_rain)
+                .map(WeatherPerHour::willItRain)
                 .filter(rain -> rain == FLAG_TRUE)
                 .findAny();
         return willItRain.isPresent();
@@ -61,7 +61,7 @@ class WeatherCalculator {
 
     static boolean checkWillItSnow(List<WeatherPerHour> weatherPerHours) {
         Optional<Integer> willItSnow = weatherPerHours.stream()
-                .map(WeatherPerHour::will_it_snow)
+                .map(WeatherPerHour::willItSnow)
                 .filter(snow -> snow == FLAG_TRUE)
                 .findAny();
         return willItSnow.isPresent();
@@ -89,7 +89,7 @@ class WeatherCalculator {
                     .flatMap(Collection::stream)
                     .toList()
                     .stream()
-                    .map(WeatherPerHour::will_it_rain)
+                    .map(WeatherPerHour::willItRain)
                     .filter(rain -> rain == FLAG_TRUE)
                     .findAny();
         } else {

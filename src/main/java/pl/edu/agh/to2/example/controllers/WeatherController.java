@@ -21,7 +21,6 @@ import static org.springframework.http.HttpStatus.*;
 @RequestMapping("/weather")
 public class WeatherController {
     private final WeatherService service;
-
     @Autowired
     public WeatherController(WeatherService service) {
         this.service = service;
@@ -34,7 +33,7 @@ public class WeatherController {
                 .toList();
         Optional<WeatherResponseConverted> weatherResponse;
         try {
-            weatherResponse = service.findWeatherForecast(weatherRequests);
+            weatherResponse = service.findWeather(weatherRequests);
         } catch (IOException ignored) {
             return new ResponseEntity<>(BAD_GATEWAY);
         }

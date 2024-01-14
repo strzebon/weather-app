@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
+import pl.edu.agh.to2.example.services.ForecastService;
 import pl.edu.agh.to2.example.services.WeatherService;
 
 import java.io.IOException;
@@ -27,7 +28,7 @@ class WeatherTests {
     void shouldReturnEmptyWhenWrongCoordinates() {
         try {
             //when
-            Optional<WeatherResponseConverted> response = service.findWeatherForecast(List.of(new WeatherRequest(1000, 1000)));
+            Optional<WeatherResponseConverted> response = service.findWeather(List.of(new WeatherRequest(1000, 1000)));
             //then
             assertTrue(response.isEmpty());
         } catch (IOException e) {
@@ -40,7 +41,7 @@ class WeatherTests {
     void shouldReturnNonemptyWhenRightCoordinates() {
         try {
             //when
-            Optional<WeatherResponseConverted> response = service.findWeatherForecast(List.of(new WeatherRequest(1, 1)));
+            Optional<WeatherResponseConverted> response = service.findWeather(List.of(new WeatherRequest(1, 1)));
             //then
             assertTrue(response.isPresent());
         } catch (IOException e) {

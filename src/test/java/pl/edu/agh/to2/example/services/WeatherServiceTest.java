@@ -74,7 +74,7 @@ class WeatherServiceTest {
         when(okHttpClient.newCall(any())).thenReturn(call);
         when(okHttpClient.newCall(any()).execute()).thenThrow(IOException.class);
 
-        assertThrows(IOException.class, () -> service.findWeatherForecast(List.of(new WeatherRequest(1, 1))));
+        assertThrows(IOException.class, () -> service.findWeather(List.of(new WeatherRequest(1, 1))));
     }
 
     @Test
@@ -91,7 +91,7 @@ class WeatherServiceTest {
             jsonParserMocked.when(() -> JsonParser.parseString(any()).getAsJsonObject()).thenReturn(json);
 
             //when
-            finalResponse = service.findWeatherForecast(List.of(new WeatherRequest(1, 1)));
+            finalResponse = service.findWeather(List.of(new WeatherRequest(1, 1)));
         }
 
         //then
