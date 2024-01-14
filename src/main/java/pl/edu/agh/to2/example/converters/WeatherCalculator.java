@@ -13,8 +13,9 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 
 import static java.lang.Math.sqrt;
+import static lombok.AccessLevel.PRIVATE;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = PRIVATE)
 class WeatherCalculator {
     private static final String TEMP_EXCEPTION_MESSAGE = "Data about temperature not found";
     private static final String PRECIP_EXCEPTION_MESSAGE = "Data about precipitation not found";

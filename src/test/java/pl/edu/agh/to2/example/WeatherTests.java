@@ -8,7 +8,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.exceptions.CallToApiWentWrongException;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
-import pl.edu.agh.to2.example.services.ForecastService;
 import pl.edu.agh.to2.example.services.WeatherService;
 
 import java.util.List;
@@ -19,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        classes = Main.class)
+        classes = {Main.class, WeatherService.class})
 class WeatherTests {
     @Autowired
     private WeatherService service;

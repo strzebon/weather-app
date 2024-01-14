@@ -10,26 +10,20 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.to2.example.converters.WeatherResponseConverter;
-import pl.edu.agh.to2.example.exceptions.MissingDataException;
+import pl.edu.agh.to2.example.exceptions.CallToApiWentWrongException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
-import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
-import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
-import pl.edu.agh.to2.example.utils.ResponseHolder;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class ForecastService {
     private static final String URL_FORECAST = "http://api.weatherapi.com/v1/forecast.json";
-    private static final String API_KEY = "53416f14f51041f593a122744232711";
+    public static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String LOCATION = "location";
     private static final String FORECAST = "forecast";
     private final OkHttpClient client;
@@ -41,7 +35,7 @@ public class ForecastService {
         this.gson = gson;
     }
 
-    public List<WeatherForecastResponse> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
+    public List<WeatherForecastResponse> findWeatherForecast(List<WeatherRequest> weatherRequests) throws CallToApiWentWrongException {
         List<WeatherForecastResponse> responses = new ArrayList<>();
         for (WeatherRequest weatherRequest : weatherRequests) {
             Request request = createHttpForecastRequest(weatherRequest);
@@ -52,7 +46,7 @@ public class ForecastService {
                     responses.add(valuesFromJson);
                 }
             } catch (IOException e) {
-                throw new IOException();
+                throw new CallToApiWentWrongException();
             }
         }
         return responses;

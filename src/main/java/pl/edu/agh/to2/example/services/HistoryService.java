@@ -9,21 +9,21 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.to2.example.exceptions.CallToApiWentWrongException;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
-import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+
+import static pl.edu.agh.to2.example.services.ForecastService.API_KEY;
 
 @Service
 public class HistoryService {
     private static final String URL_HISTORY = "http://api.weatherapi.com/v1/history.json";
-    private static final String API_KEY = "53416f14f51041f593a122744232711";
     private static final String FORECAST = "forecast";
     private final OkHttpClient client;
 
@@ -32,7 +32,7 @@ public class HistoryService {
         this.client = client;
     }
 
-    public WeatherHistoryResponse findWeatherHistory(List<WeatherRequest> weatherRequests) throws IOException {
+    public WeatherHistoryResponse findWeatherHistory(List<WeatherRequest> weatherRequests) throws CallToApiWentWrongException {
         List<Integer> wasRainyFirstDay = new ArrayList<>();
         List<Integer> wasRainySecondDay = new ArrayList<>();
         LocalDate date = LocalDate.now();
@@ -44,6 +44,8 @@ public class HistoryService {
                     int wasRainy = getRainInformation(response);
                     wasRainyFirstDay.add(wasRainy);
                 }
+            } catch (IOException ignored) {
+                throw new CallToApiWentWrongException();
             }
             request = createHttpHistoryRequest(weatherRequest, date.minusDays(1));
             try (Response response = client.newCall(request).execute()) {
@@ -51,6 +53,8 @@ public class HistoryService {
                     int wasRainy = getRainInformation(response);
                     wasRainySecondDay.add(wasRainy);
                 }
+            } catch (IOException ignored) {
+                throw new CallToApiWentWrongException();
             }
         }
         return new WeatherHistoryResponse(wasRainyFirstDay, wasRainySecondDay);

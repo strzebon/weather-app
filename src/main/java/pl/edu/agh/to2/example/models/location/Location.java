@@ -25,5 +25,6 @@ public class Location {
         return lng;
     }
 
-    public Location() {}
+    public Location() {
+    }
 }

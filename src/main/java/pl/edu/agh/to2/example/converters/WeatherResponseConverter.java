@@ -1,5 +1,6 @@
 package pl.edu.agh.to2.example.converters;
 
+import lombok.NoArgsConstructor;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.Precipitation;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static lombok.AccessLevel.PRIVATE;
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.calculateSensedTemp;
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.checkIsMuddy;
 import static pl.edu.agh.to2.example.converters.WeatherCalculator.checkWillItRain;
@@ -25,18 +27,15 @@ import static pl.edu.agh.to2.example.models.weather.Precipitation.RAIN;
 import static pl.edu.agh.to2.example.models.weather.Precipitation.SNOW;
 import static pl.edu.agh.to2.example.models.weather.TemperatureLevel.determineTemperatureLevel;
 
+@NoArgsConstructor(access = PRIVATE)
 public class WeatherResponseConverter {
     private static final double MIN_WINDY_VALUE = 5;
-
-    private WeatherResponseConverter() {}
 
     public static WeatherResponseConverted convertWeatherResponse(
             List<WeatherForecastResponse> weatherForecastResponses,
             WeatherHistoryResponse weatherHistoryResponse,
             LocalDateTime currentTime,
-            LocalDateTime latestTimeForToday
-
-    ) throws MissingDataException {
+            LocalDateTime latestTimeForToday) throws MissingDataException {
 
         List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(
                 weatherForecastResponses,

@@ -11,7 +11,6 @@ import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
 import pl.edu.agh.to2.example.utils.ResponseHolder;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +26,7 @@ public class WeatherService {
         this.historyService = historyService;
     }
 
-    public Optional<WeatherResponseConverted> findWeather(List<WeatherRequest> weatherRequests) throws IOException {
+    public Optional<WeatherResponseConverted> findWeather(List<WeatherRequest> weatherRequests) throws CallToApiWentWrongException {
         List<WeatherForecastResponse> weatherForecastResponses = forecastService.findWeatherForecast(weatherRequests);
         WeatherHistoryResponse weatherHistoryResponse = historyService.findWeatherHistory(weatherRequests);
         LocalDateTime currentTime = LocalDateTime.now();

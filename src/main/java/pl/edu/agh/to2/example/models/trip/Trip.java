@@ -1,6 +1,10 @@
 package pl.edu.agh.to2.example.models.trip;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import pl.edu.agh.to2.example.models.location.Location;
 
 import java.util.ArrayList;
@@ -20,7 +24,8 @@ public class Trip {
         locations = new ArrayList<>();
     }
 
-    public Trip() {}
+    public Trip() {
+    }
 
     public int getId() {
         return id;

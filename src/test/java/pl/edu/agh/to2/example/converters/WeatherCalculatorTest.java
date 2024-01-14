@@ -7,13 +7,15 @@ import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.response.WeatherForecastResponse;
 import pl.edu.agh.to2.example.models.weather.response.WeatherHistoryResponse;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -174,7 +176,7 @@ class WeatherCalculatorTest {
         LocalDateTime date = mock(LocalDateTime.class);
         LocalDateTime lastDate = mock(LocalDateTime.class);
         when(date.isAfter(lastDate)).thenReturn(false);
-        List<WeatherForecastResponse> weatherForecastResponses = mock(List.class);
+        List<WeatherForecastResponse> weatherForecastResponses = List.of();
 
         // when
         boolean isMuddy = WeatherCalculator.checkIsMuddy(weatherHistoryResponse, weatherForecastResponses, date, lastDate);
