@@ -11,6 +11,7 @@ import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.to2.example.converters.WeatherResponseConverter;
+import pl.edu.agh.to2.example.exceptions.CallToApiWentWrongException;
 import pl.edu.agh.to2.example.exceptions.MissingDataException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
@@ -42,7 +43,7 @@ public class WeatherService {
         this.gson = gson;
     }
 
-    public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
+    public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws CallToApiWentWrongException {
         List<WeatherForecastResponse> responses = new ArrayList<>();
         for (WeatherRequest weatherRequest : weatherRequests) {
             Request request = createHttpForecastRequest(weatherRequest);
@@ -53,7 +54,7 @@ public class WeatherService {
                     responses.add(valuesFromJson);
                 }
             } catch (IOException e) {
-                throw new IOException();
+                throw new CallToApiWentWrongException();
             }
         }
         if (responses.isEmpty()) {
@@ -70,6 +71,8 @@ public class WeatherService {
                     int wasRainy = getRainInformation(response);
                     wasRainyFirstDay.add(wasRainy);
                 }
+            } catch (IOException e) {
+                throw new CallToApiWentWrongException();
             }
             request = createHttpHistoryRequest(weatherRequest, date.minusDays(1));
             try (Response response = client.newCall(request).execute()) {
@@ -77,6 +80,8 @@ public class WeatherService {
                     int wasRainy = getRainInformation(response);
                     wasRainySecondDay.add(wasRainy);
                 }
+            } catch (IOException e) {
+                throw new CallToApiWentWrongException();
             }
         }
         WeatherHistoryResponse historyResponse = new WeatherHistoryResponse(wasRainyFirstDay, wasRainySecondDay);
