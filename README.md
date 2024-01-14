@@ -597,12 +597,35 @@ Serwis do przekształcenia danych pobranych z backendu tak aby były gotowe do w
 @RequestMapping("/weather")
 public class WeatherController {
     private final WeatherService service;
-
     @Autowired
     public WeatherController(WeatherService service) {
         this.service = service;
     }
-    ...
+
+    @PostMapping("")
+    public ResponseEntity<WeatherResponseConverted> findWeather(@RequestBody List<WeatherRequestDto> weatherRequestsDto) {
+        List<WeatherRequest> weatherRequests = weatherRequestsDto.stream()
+                .map(weatherRequestDto -> new WeatherRequest(weatherRequestDto.lat(), weatherRequestDto.lng()))
+                .toList();
+        Optional<WeatherResponseConverted> weatherResponse;
+        try {
+            weatherResponse = service.findWeather(weatherRequests);
+        } catch (IOException ignored) {
+            return new ResponseEntity<>(BAD_GATEWAY);
+        }
+
+        return weatherResponse
+                .map(wr -> new ResponseEntity<>(wr, OK))
+                .orElse(new ResponseEntity<>(NOT_FOUND));
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<WeatherResponseConverted> getLastWeatherResponse() {
+        if (!ResponseHolder.isLastResponse()) {
+            return new ResponseEntity<>(NOT_FOUND);
+        }
+        return new ResponseEntity<>(ResponseHolder.getLastResponse(), OK);
+    }
 }
 ```
 Klasa kontroler, zawierająca endpointy do komunikacji z frontendem
@@ -756,11 +779,16 @@ Klasa zawierająca wartości opisujące warunki dotyczące poziomu temperatury o
 ```
 public record WeatherPerHour(
         String time,
-        double temp_c,
-        double precip_mm,
-        double wind_kph,
-        int will_it_rain,
-        int will_it_snow
+        @JsonProperty("temp_c")
+        double tempC,
+        @JsonProperty("precip_mm")
+        double precipMm,
+        @JsonProperty("wind_kph")
+        double windKph,
+        @JsonProperty("will_it_rain")
+        int willItRain,
+        @JsonProperty("will_it_snow")
+        int willItSnow
 ) {
 }
 ```
@@ -771,96 +799,157 @@ Klasa zawierająca dane dotyczące warunków pogodowych występujących w danej 
 ```
 @Service
 public class WeatherService {
-
-    private static final String URL_CURRENT = "http://api.weatherapi.com/v1/current.json";
-    private static final String URL_FORECAST = "http://api.weatherapi.com/v1/forecast.json";
-    private static final String API_KEY = "53416f14f51041f593a122744232711";
-    private static final String LOCATION = "location";
-    private static final String CURRENT = "current";
-    private static final String CONDITION = "condition";
-    private final OkHttpClient client;
-    private final Gson gson;
+    private final ForecastService forecastService;
+    private final HistoryService historyService;
 
     @Autowired
-    public WeatherService(OkHttpClient client, Gson gson) {
-        this.client = client;
-        this.gson = gson;
+    public WeatherService(ForecastService forecastService, HistoryService historyService) {
+        this.forecastService = forecastService;
+        this.historyService = historyService;
     }
 
-    public Optional<WeatherResponse> findWeather(WeatherRequest weatherRequest) throws IOException {
-        String params = weatherRequest.lat() + "," + weatherRequest.lng();
-        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_CURRENT)).newBuilder()
-                .addQueryParameter("key", API_KEY)
-                .addQueryParameter("q", params);
-        Request request = new Request.Builder()
-                .url(builder.build())
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.code() == 200) {
-                JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
-                String location = json.getAsJsonObject(LOCATION).get("name").getAsString();
-                double temp_c = Double.parseDouble(json.getAsJsonObject(CURRENT).get("temp_c").getAsString());
-                String[] img_path = json.getAsJsonObject(CURRENT).getAsJsonObject(CONDITION).get("icon").getAsString().split("/");
-                String condition = json.getAsJsonObject(CURRENT).getAsJsonObject(CONDITION).get("text").getAsString();
-                double precip_mm = Double.parseDouble(json.getAsJsonObject(CURRENT).get("precip_mm").getAsString());
-                WeatherResponse lastResponse = new WeatherResponse(location, temp_c, img_path[img_path.length - 2]
-                        + "/" + img_path[img_path.length - 1], condition, precip_mm);
-                ResponseHolder.updateLastResponse(lastResponse);
-                return Optional.of(lastResponse);
-            }
-        } catch (IOException e) {
-            throw new IOException();
-        } catch (NullPointerException e) {
-            return Optional.empty();
-        }
-        return Optional.empty();
-    }
-
-    public Optional<WeatherResponseConverted> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
-        List<WeatherForecastResponse> responses = new ArrayList<>();
-        for (WeatherRequest weatherRequest : weatherRequests) {
-            String params = weatherRequest.lat() + "," + weatherRequest.lng();
-            HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
-                    .addQueryParameter("key", API_KEY)
-                    .addQueryParameter("q", params)
-                    .addQueryParameter("days", "2");
-            Request request = new Request.Builder()
-                    .url(builder.build())
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.code() == 200) {
-                    JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
-                    String location = json.getAsJsonObject(LOCATION).get("name").getAsString();
-
-                    JsonArray weathers = json.getAsJsonObject("forecast").getAsJsonArray("forecastday");
-
-                    JsonArray todayWeatherJson = weathers.get(0).getAsJsonObject().getAsJsonArray("hour");
-                    List<WeatherPerHour> todayWeather = List.of(gson.fromJson(todayWeatherJson, WeatherPerHour[].class));
-
-                    JsonArray tomorrowWeatherJson = weathers.get(1).getAsJsonObject().getAsJsonArray("hour");
-                    List<WeatherPerHour> tomorrowWeather = List.of(gson.fromJson(tomorrowWeatherJson, WeatherPerHour[].class));
-
-                    responses.add(new WeatherForecastResponse(location, todayWeather, tomorrowWeather));
-                }
-            } catch (IOException e) {
-                throw new IOException();
-            } catch (NullPointerException ignored) {
-                return Optional.empty();
-            }
-        }
-        if (responses.isEmpty()) {
-            return Optional.empty();
-        }
+    public Optional<WeatherResponseConverted> findWeather(List<WeatherRequest> weatherRequests) throws IOException {
+        List<WeatherForecastResponse> weatherForecastResponses = forecastService.findWeatherForecast(weatherRequests);
+        WeatherHistoryResponse weatherHistoryResponse = historyService.findWeatherHistory(weatherRequests);
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime latestTimeForToday = LocalDateTime.of(currentTime.getYear(), currentTime.getMonth(),
+                currentTime.getDayOfMonth(), 6, 0);
         try {
-            return Optional.of(WeatherResponseConverter.convertWeatherResponse(responses));
+            ResponseHolder.updateLastResponse(WeatherResponseConverter.convertWeatherResponse(weatherForecastResponses, weatherHistoryResponse, currentTime, latestTimeForToday));
+            return Optional.of(WeatherResponseConverter.convertWeatherResponse(weatherForecastResponses, weatherHistoryResponse, currentTime, latestTimeForToday));
         } catch (MissingDataException e) {
             return Optional.empty();
         }
     }
 }
 ```
-Klasa serwis, jej zadaniem jest połączenie się z API, wysłanie zapytania oraz przetworzenie informacji zwrotnej.
+Klasa serwis, funkcjonuje jako pośrednik pomiędzy kontrolerem a serwisami podrzędnymi. Przekazuje zapytanie z kontrolera do serwisów i wysyła przetworzoną
+informację zwrotną z powrotem do kontrolera.
+
+#### ForecastService
+```
+@Service
+public class ForecastService {
+    private static final String URL_FORECAST = "http://api.weatherapi.com/v1/forecast.json";
+    private static final String API_KEY = "53416f14f51041f593a122744232711";
+    private static final String LOCATION = "location";
+    private static final String FORECAST = "forecast";
+    private final OkHttpClient client;
+    private final Gson gson;
+
+    @Autowired
+    public ForecastService(OkHttpClient client, Gson gson) {
+        this.client = client;
+        this.gson = gson;
+    }
+
+    public List<WeatherForecastResponse> findWeatherForecast(List<WeatherRequest> weatherRequests) throws IOException {
+        List<WeatherForecastResponse> responses = new ArrayList<>();
+        for (WeatherRequest weatherRequest : weatherRequests) {
+            Request request = createHttpForecastRequest(weatherRequest);
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    WeatherForecastResponse valuesFromJson = getValuesFromJson(response);
+                    responses.add(valuesFromJson);
+                }
+            } catch (IOException e) {
+                throw new IOException();
+            }
+        }
+        return responses;
+    }
+
+    private Request createHttpForecastRequest(WeatherRequest weatherRequest) {
+        String params = weatherRequest.lat() + "," + weatherRequest.lng();
+        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_FORECAST)).newBuilder()
+                .addQueryParameter("key", API_KEY)
+                .addQueryParameter("q", params)
+                .addQueryParameter("days", "2");
+        return new Request.Builder()
+                .url(builder.build())
+                .build();
+    }
+
+    private WeatherForecastResponse getValuesFromJson(Response response) throws IOException {
+        JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
+        String location = json.getAsJsonObject(LOCATION).get("name").getAsString();
+
+        JsonArray weathers = json.getAsJsonObject(FORECAST).getAsJsonArray("forecastday");
+
+        JsonArray todayWeatherJson = weathers.get(0).getAsJsonObject().getAsJsonArray("hour");
+        WeatherPerHour[] weatherPerHours = gson.fromJson(todayWeatherJson, WeatherPerHour[].class);
+        List<WeatherPerHour> todayWeather = List.of(weatherPerHours);
+
+        JsonArray tomorrowWeatherJson = weathers.get(1).getAsJsonObject().getAsJsonArray("hour");
+        List<WeatherPerHour> tomorrowWeather = List.of(gson.fromJson(tomorrowWeatherJson, WeatherPerHour[].class));
+
+        return new WeatherForecastResponse(location, todayWeather, tomorrowWeather);
+    }
+}
+```
+Klasa serwis, służy do uzyskania z API informacji dotyczących prognozowanych warunków pogodowych.
+
+#### HistoryService
+```
+@Service
+public class HistoryService {
+    private static final String URL_HISTORY = "http://api.weatherapi.com/v1/history.json";
+    private static final String API_KEY = "53416f14f51041f593a122744232711";
+    private static final String FORECAST = "forecast";
+    private final OkHttpClient client;
+
+    @Autowired
+    public HistoryService(OkHttpClient client, Gson gson) {
+        this.client = client;
+    }
+
+    public WeatherHistoryResponse findWeatherHistory(List<WeatherRequest> weatherRequests) throws IOException {
+        List<Integer> wasRainyFirstDay = new ArrayList<>();
+        List<Integer> wasRainySecondDay = new ArrayList<>();
+        LocalDate date = LocalDate.now();
+
+        for (WeatherRequest weatherRequest : weatherRequests) {
+            Request request = createHttpHistoryRequest(weatherRequest, date.minusDays(2));
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    int wasRainy = getRainInformation(response);
+                    wasRainyFirstDay.add(wasRainy);
+                }
+            }
+            request = createHttpHistoryRequest(weatherRequest, date.minusDays(1));
+            try (Response response = client.newCall(request).execute()) {
+                if (response.code() == 200) {
+                    int wasRainy = getRainInformation(response);
+                    wasRainySecondDay.add(wasRainy);
+                }
+            }
+        }
+        return new WeatherHistoryResponse(wasRainyFirstDay, wasRainySecondDay);
+    }
+
+    private Request createHttpHistoryRequest(WeatherRequest weatherRequest, LocalDate date) {
+        String params = weatherRequest.lat() + "," + weatherRequest.lng();
+        String dt = date.toString();
+        HttpUrl.Builder builder = Objects.requireNonNull(HttpUrl.parse(URL_HISTORY)).newBuilder()
+                .addQueryParameter("key", API_KEY)
+                .addQueryParameter("q", params)
+                .addQueryParameter("dt", dt);
+        return new Request.Builder()
+                .url(builder.build())
+                .build();
+    }
+
+    private int getRainInformation(Response response) throws IOException {
+        JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
+        return json.getAsJsonObject(FORECAST)
+                .getAsJsonArray("forecastday")
+                .get(0).getAsJsonObject().
+                getAsJsonObject("day").get("daily_will_it_rain").getAsInt();
+    }
+}
+```
+Klasa serwis, służy do uzyskania z API informacji dotyczących warunków pogodowych zarejestrowanych w minionych dniach.
 
 ### Konfiguratory
 #### WeatherConfigurator
@@ -882,23 +971,44 @@ Klasa odpowiedzialna za skonstruowanie obiektu OkHttpClient, wstrzykiwanego do s
 public class WeatherResponseConverter {
     private static final double MIN_WINDY_VALUE = 5;
 
-    public static WeatherResponseConverted convertWeatherResponse(List<WeatherForecastResponse> weatherForecastResponses)
-            throws MissingDataException {
-        List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(weatherForecastResponses);
-        List<String> locations = getLocations(weatherForecastResponses);
+    private WeatherResponseConverter() {}
 
-        double minTemp = findMinTemp(weatherPerHours);
-        double maxPrecip = findMaxPrecip(weatherPerHours);
-        double maxWind = findMaxWind(weatherPerHours);
+    public static WeatherResponseConverted convertWeatherResponse(
+            List<WeatherForecastResponse> weatherForecastResponses,
+            WeatherHistoryResponse weatherHistoryResponse,
+            LocalDateTime currentTime,
+            LocalDateTime latestTimeForToday
+
+    ) throws MissingDataException {
+
+        List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(
+                weatherForecastResponses,
+                currentTime,
+                latestTimeForToday
+        );
+        WeatherResponseConvertedBuilder responseBuilder = WeatherResponseConverted.builder();
+        responseBuilder.locations(getLocations(weatherForecastResponses));
+        responseBuilder.maxPrecip(findMaxPrecip(weatherPerHours));
+
         boolean willItRain = checkWillItRain(weatherPerHours);
         boolean willItSnow = checkWillItSnow(weatherPerHours);
+        responseBuilder.precipitation(prepareListOfPrecipitations(willItRain, willItSnow));
+
+        double maxWind = findMaxWind(weatherPerHours);
+        responseBuilder.isWindy(determineIsWindy(maxWind));
+        double minTemp = findMinTemp(weatherPerHours);
+        responseBuilder.minTemp(findMinTemp(weatherPerHours));
         double sensedTemp = calculateSensedTemp(minTemp, maxWind);
-
-        TemperatureLevel temperatureLevel = determineTemperatureLevel(sensedTemp);
-        boolean isWindy = determineIsWindy(maxWind);
-        List<Precipitation> precipitations = prepareListOfPrecipitations(willItRain, willItSnow);
-
-        return new WeatherResponseConverted(locations, temperatureLevel, isWindy, precipitations, minTemp, sensedTemp, maxPrecip);
+        responseBuilder.sensedTemp(sensedTemp);
+        responseBuilder.temperatureLevel(determineTemperatureLevel(sensedTemp));
+        boolean isMuddy = checkIsMuddy(
+                weatherHistoryResponse,
+                weatherForecastResponses,
+                currentTime,
+                latestTimeForToday
+        );
+        responseBuilder.isMuddy(isMuddy);
+        return responseBuilder.build();
     }
 
     private static List<String> getLocations(List<WeatherForecastResponse> weatherForecastResponses) {
@@ -907,10 +1017,11 @@ public class WeatherResponseConverter {
                 .toList();
     }
 
-    private static List<WeatherPerHour> prepareDataToAnalysis(List<WeatherForecastResponse> weatherForecastResponses) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        LocalDateTime latestTimeForToday = LocalDateTime.of(currentTime.getYear(), currentTime.getMonth(),
-                currentTime.getDayOfMonth(), 6, 0);
+    private static List<WeatherPerHour> prepareDataToAnalysis(
+            List<WeatherForecastResponse> weatherForecastResponses,
+            LocalDateTime currentTime,
+            LocalDateTime latestTimeForToday
+    ) {
         if (currentTime.isAfter(latestTimeForToday)) {
             return weatherForecastResponses.stream()
                     .map(WeatherForecastResponse::tomorrowWeather)
@@ -926,12 +1037,27 @@ public class WeatherResponseConverter {
     private static boolean determineIsWindy(double maxWind) {
         return maxWind > MIN_WINDY_VALUE;
     }
+
+    private static List<Precipitation> prepareListOfPrecipitations(boolean willItRain, boolean willItSnow) {
+        List<Precipitation> precipitations = new ArrayList<>();
+        if (willItRain) {
+            precipitations.add(RAIN);
+        }
+        if (willItSnow) {
+            precipitations.add(SNOW);
+        }
+        if (precipitations.isEmpty()) {
+            precipitations.add(CLEAR);
+        }
+        return precipitations;
+    }
 }
 ```
-Klasa odpowiedzialna za przetworzenie otrzymanych z serwisu danych do formy wyświetlanej na frontendzie.
+Klasa odpowiedzialna za przetworzenie otrzymanych z serwisów danych do formy wyświetlanej na frontendzie.
 
 #### WeatherCalculator
 ```
+@NoArgsConstructor
 class WeatherCalculator {
     private static final String TEMP_EXCEPTION_MESSAGE = "Data about temperature not found";
     private static final String PRECIP_EXCEPTION_MESSAGE = "Data about precipitation not found";
@@ -940,7 +1066,7 @@ class WeatherCalculator {
 
     static double findMinTemp(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble minTemp = weatherPerHours.stream()
-                .mapToDouble(WeatherPerHour::temp_c)
+                .mapToDouble(WeatherPerHour::tempC)
                 .min();
         if (minTemp.isEmpty()) {
             throw new MissingDataException(TEMP_EXCEPTION_MESSAGE);
@@ -950,7 +1076,7 @@ class WeatherCalculator {
 
     static double findMaxPrecip(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble maxPrecip = weatherPerHours.stream()
-                .mapToDouble(WeatherPerHour::precip_mm)
+                .mapToDouble(WeatherPerHour::precipMm)
                 .max();
         if (maxPrecip.isEmpty()) {
             throw new MissingDataException(PRECIP_EXCEPTION_MESSAGE);
@@ -960,7 +1086,7 @@ class WeatherCalculator {
 
     static double findMaxWind(List<WeatherPerHour> weatherPerHours) throws MissingDataException {
         OptionalDouble maxWind = weatherPerHours.stream()
-                .mapToDouble(WeatherPerHour::wind_kph)
+                .mapToDouble(WeatherPerHour::windKph)
                 .max();
         if (maxWind.isEmpty()) {
             throw new MissingDataException(WIND_EXCEPTION_MESSAGE);
@@ -970,7 +1096,7 @@ class WeatherCalculator {
 
     static boolean checkWillItRain(List<WeatherPerHour> weatherPerHours) {
         Optional<Integer> willItRain = weatherPerHours.stream()
-                .map(WeatherPerHour::will_it_rain)
+                .map(WeatherPerHour::willItRain)
                 .filter(rain -> rain == FLAG_TRUE)
                 .findAny();
         return willItRain.isPresent();
@@ -978,7 +1104,7 @@ class WeatherCalculator {
 
     static boolean checkWillItSnow(List<WeatherPerHour> weatherPerHours) {
         Optional<Integer> willItSnow = weatherPerHours.stream()
-                .map(WeatherPerHour::will_it_snow)
+                .map(WeatherPerHour::willItSnow)
                 .filter(snow -> snow == FLAG_TRUE)
                 .findAny();
         return willItSnow.isPresent();
@@ -986,6 +1112,38 @@ class WeatherCalculator {
 
     static double calculateSensedTemp(double temp, double wind) {
         return 33 + (0.478 + 0.237 * sqrt(wind) - 0.0124 * wind) * (temp - 33);
+    }
+
+    static boolean checkIsMuddy(
+            WeatherHistoryResponse weatherHistoryResponse,
+            List<WeatherForecastResponse> weatherForecastResponses,
+            LocalDateTime currentTime,
+            LocalDateTime latestTimeForToday
+    ) {
+        Optional<Integer> firstDay;
+        Optional<Integer> secondDay;
+
+        if (currentTime.isAfter(latestTimeForToday)) {
+            firstDay = weatherHistoryResponse.wasRainySecondDay().stream()
+                    .filter(e -> e == FLAG_TRUE)
+                    .findAny();
+            secondDay = weatherForecastResponses.stream()
+                    .map(WeatherForecastResponse::todayWeather)
+                    .flatMap(Collection::stream)
+                    .toList()
+                    .stream()
+                    .map(WeatherPerHour::willItRain)
+                    .filter(rain -> rain == FLAG_TRUE)
+                    .findAny();
+        } else {
+            firstDay = weatherHistoryResponse.wasRainyFirstDay().stream()
+                    .filter(e -> e == FLAG_TRUE)
+                    .findAny();
+            secondDay = weatherHistoryResponse.wasRainySecondDay().stream()
+                    .filter(e -> e == FLAG_TRUE)
+                    .findAny();
+        }
+        return (firstDay.isPresent() || secondDay.isPresent());
     }
 }
 ```
