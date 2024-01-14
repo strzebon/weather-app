@@ -1,4 +1,4 @@
-package pl.edu.agh.to2.example.models.location;
+package pl.edu.agh.to2.example.models.trip;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

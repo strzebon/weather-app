@@ -3,7 +3,7 @@ package pl.edu.agh.to2.example.repositiories;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pl.edu.agh.to2.example.models.location.Location;
+import pl.edu.agh.to2.example.models.trip.Location;
 import pl.edu.agh.to2.example.models.trip.Trip;
 import pl.edu.agh.to2.example.repositories.TripRepository;
 

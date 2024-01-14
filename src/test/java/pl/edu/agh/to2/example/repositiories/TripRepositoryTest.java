@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import pl.edu.agh.to2.example.models.location.Location;
+import pl.edu.agh.to2.example.models.trip.Location;
 import pl.edu.agh.to2.example.models.trip.Trip;
 import pl.edu.agh.to2.example.repositories.TripRepository;
 
