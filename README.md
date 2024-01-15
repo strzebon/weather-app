@@ -716,6 +716,63 @@ public class TripController {
     }
 }
 ```
+Controller odpowiedzialny za zapis, odczyt i usuwanie z bazy zapisanych
+wycieczek
+#### saveNewTrip
+```
+@PostMapping("/trips")
+public ResponseEntity<Trip> saveNewTrip(@RequestBody Trip trip) {
+Trip savedTrip;
+    try {
+        savedTrip = tripService.saveTrip(trip);
+    } catch (ArgumentToUseInDbIsNullException ignored) {
+        return new ResponseEntity<>(BAD_REQUEST);
+    }
+    return new ResponseEntity<>(savedTrip, OK);
+}
+```
+Metoda saveNewTrip zapisuje nową wycieczkę
+
+#### getTripById
+```
+@GetMapping("/trips/{id}")
+public ResponseEntity<Trip> getTripById(@PathVariable int id) {
+    Optional<Trip> trip;
+    try {
+        trip = tripService.getTrip(id);
+    } catch (ArgumentToUseInDbIsNullException ignored) {
+        return new ResponseEntity<>(BAD_REQUEST);
+    }
+    return trip
+            .map(foundTrip -> new ResponseEntity<>(foundTrip, OK))
+            .orElse(new ResponseEntity<>(NOT_FOUND));
+}
+```
+Metoda getTripById pobiera z bazy trip o podanym id
+
+#### getAllTrips
+```
+@GetMapping("/trips")
+    public ResponseEntity<List<Trip>> getAllTrips() {
+        return new ResponseEntity<>(tripService.getTrips(), OK);
+    }
+```
+Metoda getAllTrips pobiera z bazy wszystkie wycieczki
+
+#### deleteTripById
+```
+@DeleteMapping("/trips/{id}")
+    public ResponseEntity<HttpStatus> deleteTripById(@PathVariable int id) {
+        try {
+            tripService.deleteTrip(id);
+        } catch (ArgumentToUseInDbIsNullException ignored) {
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
+        return new ResponseEntity<>(OK);
+    }
+```
+Metoda deleteTripById usuwa z bazy wycieczke o podanym id
+
 ### Modele
 #### WeatherRequestDto
 ```
@@ -1340,6 +1397,8 @@ public class ArgumentToUseInDbIsNullException extends Exception {
     }
 }
 ```
+Wyjątek używany, gdy próbujemy zrobić jakąś operacje na bazie danych
+(np zapis), a argumentem przekazanym jest null
 
 #### CallToApiWentWrongException
 ```
@@ -1351,6 +1410,8 @@ public class CallToApiWentWrongException extends Exception {
     }
 }
 ```
+Wyjątek używany, gdy zapytanie to zewnętrznego api się nie powiedzie
+
 #### MissingDataException
 ```
 public class MissingDataException extends Exception {
@@ -1359,3 +1420,6 @@ public class MissingDataException extends Exception {
     }
 }
 ```
+
+Wyjątek używany gdy odpowiedź z zewnętrznego api nie zawiera wszystkich
+potrzebnych danych
