@@ -587,16 +587,17 @@ const DataConvertService = {
   },
 };
 ```
-Serwis do przekształcenia danych pobranych z backendu tak aby były gotowe do wyświetlanie (np. przypisanie odpowiednich zdjęć i zmiana tekstu na odpowiednią wielkość)
+Serwis do przekształcenia danych pobranych z backendu, tak aby były gotowe do wyświetlenia (np. przypisanie odpowiednich zdjęć i zmiana tekstu na odpowiednią wielkość)
 ## Backend
 ### Kontrolery
-### WeatherController 
+#### WeatherController 
 ```
 @RestController
 @CrossOrigin()
 @RequestMapping("/weather")
 public class WeatherController {
     private final WeatherService service;
+
     @Autowired
     public WeatherController(WeatherService service) {
         this.service = service;
@@ -610,7 +611,7 @@ public class WeatherController {
         Optional<WeatherResponseConverted> weatherResponse;
         try {
             weatherResponse = service.findWeather(weatherRequests);
-        } catch (IOException ignored) {
+        } catch (CallToApiWentWrongException ignored) {
             return new ResponseEntity<>(BAD_GATEWAY);
         }
 
@@ -629,15 +630,17 @@ public class WeatherController {
 }
 ```
 Klasa kontroler, zawierająca endpointy do komunikacji z frontendem
-#### findWeather
+##### findWeather
 ```
 @PostMapping("")
-public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDto weatherRequestDto) {
-    WeatherRequest weatherRequest = new WeatherRequest(weatherRequestDto.lat(), weatherRequestDto.lng());
-    Optional<WeatherResponse> weatherResponse;
+public ResponseEntity<WeatherResponseConverted> findWeather(@RequestBody List<WeatherRequestDto> weatherRequestsDto) {
+    List<WeatherRequest> weatherRequests = weatherRequestsDto.stream()
+            .map(weatherRequestDto -> new WeatherRequest(weatherRequestDto.lat(), weatherRequestDto.lng()))
+            .toList();
+    Optional<WeatherResponseConverted> weatherResponse;
     try {
-        weatherResponse = service.findWeather(weatherRequest);
-    } catch (IOException ignored) {
+        weatherResponse = service.findWeather(weatherRequests);
+    } catch (CallToApiWentWrongException ignored) {
         return new ResponseEntity<>(BAD_GATEWAY);
     }
 
@@ -649,10 +652,10 @@ public ResponseEntity<WeatherResponse> findWeather(@RequestBody WeatherRequestDt
 Endpoint udostępnoiny na porcie localhost:8080/weather, metoda post. Przyjmuje obiekt klasy WeatherRequestDto,
 mapuje go do obiektu klasu WeatherRequest i przekazuje do funkcji findWeather z serwisu WeatherService.
 Zawraca ReponseEntity z WeatherResponse i statusem HTTP.
-#### getLastWeatherResponse
+##### getLastWeatherResponse
 ```
 @GetMapping("/current")
-public ResponseEntity<WeatherResponse> getLastWeatherResponse() {
+public ResponseEntity<WeatherResponseConverted> getLastWeatherResponse() {
     if (!ResponseHolder.isLastResponse()) {
         return new ResponseEntity<>(NOT_FOUND);
     }
@@ -660,6 +663,59 @@ public ResponseEntity<WeatherResponse> getLastWeatherResponse() {
 }
 ```
 Drugi endpoint służy do pobrania ostatniego zapytania, tak aby po odświeżeniu przeglądarki nasze dane nie znikły oraz nie było potrzebne wykonanie ponownego takiego samego zapytania
+#### TripController 
+```
+@RestController
+@CrossOrigin()
+@RequestMapping("")
+public class TripController {
+    private final TripService tripService;
+
+    @Autowired
+    public TripController(TripService tripService) {
+        this.tripService = tripService;
+    }
+
+    @PostMapping("/trips")
+    public ResponseEntity<Trip> saveNewTrip(@RequestBody Trip trip) {
+        Trip savedTrip;
+        try {
+            savedTrip = tripService.saveTrip(trip);
+        } catch (ArgumentToUseInDbIsNullException ignored) {
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
+        return new ResponseEntity<>(savedTrip, OK);
+    }
+
+    @GetMapping("/trips/{id}")
+    public ResponseEntity<Trip> getTripById(@PathVariable int id) {
+        Optional<Trip> trip;
+        try {
+            trip = tripService.getTrip(id);
+        } catch (ArgumentToUseInDbIsNullException ignored) {
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
+        return trip
+                .map(foundTrip -> new ResponseEntity<>(foundTrip, OK))
+                .orElse(new ResponseEntity<>(NOT_FOUND));
+    }
+
+    @GetMapping("/trips")
+    public ResponseEntity<List<Trip>> getAllTrips() {
+        return new ResponseEntity<>(tripService.getTrips(), OK);
+    }
+
+    @DeleteMapping("/trips/{id}")
+    public ResponseEntity<HttpStatus> deleteTripById(@PathVariable int id) {
+        try {
+            tripService.deleteTrip(id);
+        } catch (ArgumentToUseInDbIsNullException ignored) {
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
+        return new ResponseEntity<>(OK);
+    }
+}
+```
 ### Modele
 #### WeatherRequestDto
 ```
@@ -679,23 +735,11 @@ public record WeatherRequest(double lat, double lng) {
 Klasa zawierająca dwie liczby zmiennoprzecinkowe, będące koordynatami interesującej nas lokalizacji. Operujemy na niej
 w procesie zdobywania informacji o pogodzie
 
-#### WeatherMultiRequest
+#### WeatherHistoryResponse
 ```
-public record WeatherMultiRequest(
-        List<WeatherRequest> weatherRequests
-) {
-}
-```
-Klasa zawierająca listę obiektów klasy WeatherRequest wykorzystywana przy zapytaniach dotyczących wielu lokalizacji.
-
-#### WeatherResponse
-```
-public record WeatherResponse(
-        String location,
-        double temp_c,
-        String img_path,
-        String condition,
-        double precip_mm
+public record WeatherHistoryResponse(
+        List<Integer> wasRainyFirstDay,
+        List<Integer> wasRainySecondDay
 ) {
 }
 ```
@@ -714,6 +758,7 @@ Klasa zawierająca lokalizację, pogodę na obecny dzień i pogodę na jutro.
 
 #### WeatherResponseConverted
 ```
+@Builder
 public record WeatherResponseConverted(
         List<String> locations,
         TemperatureLevel temperatureLevel,
@@ -721,7 +766,8 @@ public record WeatherResponseConverted(
         List<Precipitation> precipitation,
         double minTemp,
         double sensedTemp,
-        double maxPrecip
+        double maxPrecip,
+        boolean isMuddy
 ) {
 }
 ```
@@ -732,39 +778,29 @@ Klasa zawierająca dane pogodowe wykorzystywane przez frontend.
 public enum Precipitation {
     SNOW,
     RAIN,
-    NONE;
-
-    public static List<Precipitation> prepareListOfPrecipitations(boolean willItRain, boolean willItSnow) {
-        List<Precipitation> precipitations = new ArrayList<>();
-        if (willItRain) {
-            precipitations.add(RAIN);
-        }
-        if (willItSnow) {
-            precipitations.add(SNOW);
-        }
-        if (precipitations.isEmpty()) {
-            precipitations.add(NONE);
-        }
-        return precipitations;
-    }
+    CLEAR
 }
 ```
-Klasa zawierająca wartości opisujące warunki dotyczące opadów atmosferycznych oraz metodę przygotowującą listę opadów.
+Klasa zawierająca wartości opisujące warunki dotyczące opadów atmosferycznych.
 
 #### TemperatureLevel
 ```
 public enum TemperatureLevel {
     FREEZING,
     COLD,
+    CHILLY,
     WARM,
     HOT;
 
     public static TemperatureLevel determineTemperatureLevel(double sensedTemp) {
-        if (sensedTemp < -5) {
+        if (sensedTemp < -3) {
             return FREEZING;
         }
-        if (sensedTemp < 5) {
+        if (sensedTemp < 3) {
             return COLD;
+        }
+        if (sensedTemp < 10) {
+            return CHILLY;
         }
         if (sensedTemp < 20) {
             return WARM;
@@ -793,6 +829,77 @@ public record WeatherPerHour(
 }
 ```
 Klasa zawierająca dane dotyczące warunków pogodowych występujących w danej godzinie.
+
+#### Trip
+```
+@Entity
+public class Trip {
+    @Id
+    @GeneratedValue
+    private int id;
+    private String name;
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Location> locations;
+
+    public Trip(String name) {
+        this.name = name;
+        locations = new ArrayList<>();
+    }
+
+    public Trip() {
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Location> getLocations() {
+        return locations;
+    }
+
+    public void addLocation(Location location) {
+        locations.add(location);
+    }
+}
+```
+Klasa zawierająca dane dotyczące zapisanych wycieczek. Obiekty tej klasy są zapisywane w bazie danych. Każda wycieczka posiada swoje id, nazwę oraz listę lokalizacji odwiedzancyh podczas wycieczki.
+
+#### Location
+```
+@Entity
+public class Location {
+    @Id
+    @GeneratedValue
+    private int id;
+    private double lat;
+    private double lng;
+
+    public Location(double lat, double lng) {
+        this.lat = lat;
+        this.lng = lng;
+    }
+
+    public double getLat() {
+        return lat;
+    }
+
+    public double getLng() {
+        return lng;
+    }
+
+    public Location() {
+    }
+}
+```
+Klasa zawierająca wpółrzędne danej lokalizacji. Obiekty tej klasy są zapisywane w bazie danych. Jest ona w relacji many to one z klasą Trip.
 
 ### Serwisy
 #### WeatherService
@@ -951,6 +1058,58 @@ public class HistoryService {
 ```
 Klasa serwis, służy do uzyskania z API informacji dotyczących warunków pogodowych zarejestrowanych w minionych dniach.
 
+#### TripService
+```
+@Service
+public class TripService {
+    private final TripRepository tripRepository;
+
+    @Autowired
+    public TripService(TripRepository tripRepository) {
+        this.tripRepository = tripRepository;
+    }
+
+    public List<Trip> getTrips() {
+        return tripRepository.findAll();
+    }
+
+    public Optional<Trip> getTrip(int id) throws ArgumentToUseInDbIsNullException {
+        try {
+            return tripRepository.findById(id);
+        } catch (IllegalArgumentException ignored) {
+            throw new ArgumentToUseInDbIsNullException();
+        }
+    }
+
+    public Trip saveTrip(Trip trip) throws ArgumentToUseInDbIsNullException {
+        try {
+            return tripRepository.save(trip);
+        } catch (IllegalArgumentException ignored) {
+            throw new ArgumentToUseInDbIsNullException();
+        }
+    }
+
+    public void deleteTrip(int id) throws ArgumentToUseInDbIsNullException {
+        Optional<Trip> trip = getTrip(id);
+        try {
+            trip.ifPresent(tripRepository::delete);
+        } catch (IllegalArgumentException ignored) {
+            throw new ArgumentToUseInDbIsNullException();
+        }
+    }
+}
+```
+Klasa funkcjonuje jako pośrednik między klasami TripController i TripRepository. Zawiera metody takie jak: zwrócenie wszystkich wycieczek z bazy, zwrócenie wycieczki o danym id, zapisanie danej wycieczki w bazie i usunięcie danej wycieczki z bazy.
+
+### Repozytoria
+#### TripRepository
+```
+@Repository
+public interface TripRepository extends JpaRepository<Trip, Integer> {
+    Optional<Trip> findByName(String name);
+}
+```
+Interface typu JpaRepository zawiera podstawowe metody do tabeli Trip w bazie danych.
 ### Konfiguratory
 #### WeatherConfigurator
 ```
@@ -968,18 +1127,15 @@ Klasa odpowiedzialna za skonstruowanie obiektu OkHttpClient, wstrzykiwanego do s
 ### Konwertery
 #### WeatherResponseConverter
 ```
+@NoArgsConstructor(access = PRIVATE)
 public class WeatherResponseConverter {
     private static final double MIN_WINDY_VALUE = 5;
-
-    private WeatherResponseConverter() {}
 
     public static WeatherResponseConverted convertWeatherResponse(
             List<WeatherForecastResponse> weatherForecastResponses,
             WeatherHistoryResponse weatherHistoryResponse,
             LocalDateTime currentTime,
-            LocalDateTime latestTimeForToday
-
-    ) throws MissingDataException {
+            LocalDateTime latestTimeForToday) throws MissingDataException {
 
         List<WeatherPerHour> weatherPerHours = prepareDataToAnalysis(
                 weatherForecastResponses,
@@ -1057,7 +1213,7 @@ Klasa odpowiedzialna za przetworzenie otrzymanych z serwisów danych do formy wy
 
 #### WeatherCalculator
 ```
-@NoArgsConstructor
+@NoArgsConstructor(access = PRIVATE)
 class WeatherCalculator {
     private static final String TEMP_EXCEPTION_MESSAGE = "Data about temperature not found";
     private static final String PRECIP_EXCEPTION_MESSAGE = "Data about precipitation not found";
@@ -1153,13 +1309,16 @@ Klasa wykonująca operacje wykorzystywane w klasie WeatherResponseConverter.
 #### ResponseHolder
 ```
 public class ResponseHolder {
-    private static WeatherResponse lastResponse = null;
+    private static WeatherResponseConverted lastResponse = null;
 
-    public static void updateLastResponse(WeatherResponse weatherResponse) {
+    private ResponseHolder() {
+    }
+
+    public static void updateLastResponse(WeatherResponseConverted weatherResponse) {
         lastResponse = weatherResponse;
     }
 
-    public static WeatherResponse getLastResponse() {
+    public static WeatherResponseConverted getLastResponse() {
         return lastResponse;
     }
 
@@ -1170,3 +1329,33 @@ public class ResponseHolder {
 ```
 Klasa trzymająca stan ostatniego WeatherResponse.
 
+### Wyjątki
+#### ArgumentToUseInDbIsNullException
+```
+public class ArgumentToUseInDbIsNullException extends Exception {
+    private static final String MESSAGE = "Argument used during db operation was null!";
+
+    public ArgumentToUseInDbIsNullException() {
+        super(MESSAGE);
+    }
+}
+```
+
+#### CallToApiWentWrongException
+```
+public class CallToApiWentWrongException extends Exception {
+    private static final String MESSAGE = "Executing call to api went wrong";
+
+    public CallToApiWentWrongException() {
+        super(MESSAGE);
+    }
+}
+```
+#### MissingDataException
+```
+public class MissingDataException extends Exception {
+    public MissingDataException(String message) {
+        super(message);
+    }
+}
+```
