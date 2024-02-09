@@ -1,0 +1,46 @@
+.trip-container-element {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 850px;
+    margin-top: 20px;
+    border: solid 1px black;
+    padding: 20px;
+    box-shadow: 8px 8px 12px 0px rgb(118, 120, 139);
+}
+
+.trip-container-element h3 {
+    font-weight: 500;
+}
+
+.trip-container-element button {
+    padding: 8px 10px 8px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 16px;
+    color: white;
+    font-weight: 500;
+}
+
+.trip-container-element-show {
+    background-color: #00cdac;
+}
+
+.trip-container-element-show:hover {
+    background-color: #01a58a;
+}
+
+.trip-container-element-delete {
+    background-color: rgb(248, 71, 71);
+}
+
+.trip-container-element-delete:hover {
+    background-color: rgb(192, 10, 10);
+}
+
+.trip-container-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 150px;
+}

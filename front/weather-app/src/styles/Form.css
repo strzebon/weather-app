@@ -65,6 +65,23 @@
     font-weight: 600;
 }
 
+.latlong-save-trip-container {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row-reverse;
+    width: 100%;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.latlong-save-trip-container > .latlong-save-input {
+    margin-top: 5px;
+    padding: 8px;
+    color: rgb(58, 57, 57);
+    font-weight: 300;
+    width: 60%;
+}
+
 .form-error {
     color: red;
     font-size: 14px;

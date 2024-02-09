@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.edu.agh.to2.example.Main;
+import pl.edu.agh.to2.example.exceptions.CallToApiWentWrongException;
 import pl.edu.agh.to2.example.models.weather.WeatherPerHour;
 import pl.edu.agh.to2.example.models.weather.request.WeatherRequest;
 import pl.edu.agh.to2.example.models.weather.response.WeatherResponseConverted;
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -71,9 +73,11 @@ class WeatherServiceTest {
     void shouldThrowExceptionWhenProblemWithExecute() throws IOException {
         //given
         when(okHttpClient.newCall(any())).thenReturn(call);
-        when(okHttpClient.newCall(any()).execute()).thenThrow(IOException.class);
+        given(okHttpClient.newCall(any()).execute()).willAnswer(invocation -> {
+            throw new CallToApiWentWrongException();
+        });
 
-        assertThrows(IOException.class, () -> service.findWeatherForecast(List.of(new WeatherRequest(1, 1))));
+        assertThrows(CallToApiWentWrongException.class, () -> service.findWeather(List.of(new WeatherRequest(1, 1))));
     }
 
     @Test
@@ -90,7 +94,7 @@ class WeatherServiceTest {
             jsonParserMocked.when(() -> JsonParser.parseString(any()).getAsJsonObject()).thenReturn(json);
 
             //when
-            finalResponse = service.findWeatherForecast(List.of(new WeatherRequest(1, 1)));
+            finalResponse = service.findWeather(List.of(new WeatherRequest(1, 1)));
         }
 
         //then
@@ -106,6 +110,7 @@ class WeatherServiceTest {
     private void applyMocks() throws IOException {
         //given
         String hourTitle = "hour";
+        String dayTitle = "day";
         WeatherPerHour[] weatherPerHour = new WeatherPerHour[]{
                 new WeatherPerHour(null, TEMP, PRECIP, WIND, FLAG_TRUE, FLAG_TRUE)
         };
@@ -126,6 +131,10 @@ class WeatherServiceTest {
         when(weatherElement.getAsJsonObject()).thenReturn(weatherObject);
         when(weatherObject.getAsJsonArray(hourTitle)).thenReturn(todayWeatherJsonArray);
         when(todayWeatherJsonArray.size()).thenReturn(0);
+
+        when(weatherObject.getAsJsonObject(dayTitle)).thenReturn(weatherObject);
+        when(weatherObject.get(any())).thenReturn(jsonElement);
+        when(jsonElement.getAsInt()).thenReturn(1);
 
         when(gson.fromJson(todayWeatherJsonArray, WeatherPerHour[].class)).thenReturn(weatherPerHour);
     }
